@@ -24,6 +24,7 @@ type RepoLead = ReturnType<typeof personalizeMessage> & {
 const DATA_DIR = join(process.cwd(), "data");
 const LEADS_FILE = join(DATA_DIR, "leads.json");
 const RUNS_FILE = join(DATA_DIR, "runs.json");
+const CURSOR_FILE = join(DATA_DIR, "source-cursor.json");
 
 function readJson<T>(file: string, fallback: T): T {
   try { return JSON.parse(readFileSync(file, "utf8")) as T; } catch { return fallback; }
@@ -49,8 +50,12 @@ export async function runRepositoryCycle(targetCount = 84) {
   mkdirSync(DATA_DIR, { recursive: true });
   const leads = readJson<RepoLead[]>(LEADS_FILE, []);
   const runs = readJson<Array<Record<string, unknown>>>(RUNS_FILE, []);
+  const cursor = readJson<{ page: number }>(CURSOR_FILE, { page: 0 });
   const startedAt = new Date().toISOString();
-  const urls = await collectGeoCandidates(targetCount, page => import("../server/outreach").then(module => module.discoverPublicStoreUrls(targetCount, page)));
+  const startPage = Math.max(0, cursor.page);
+  const urls = await collectGeoCandidates(targetCount, page => import("../server/outreach").then(module => module.discoverPublicStoreUrls(targetCount, startPage + page)));
+  // Advance the durable source cursor after every bounded cycle; the lead host set below prevents reuse.
+  const nextCursor = { page: startPage + 1, updatedAt: startedAt };
   let qualified = 0; let failures = 0; let protectedForms = 0; let queued = 0;
   for (let cursor = 0; cursor < urls.length && qualified < targetCount; cursor += 8) {
     const results = await Promise.all(urls.slice(cursor, cursor + 8).map(qualifyStore));
@@ -63,7 +68,8 @@ export async function runRepositoryCycle(targetCount = 84) {
       leads.push({ id: leads.length + 1, storeName: result.storeName, niche: result.niche, storeUrl: result.storeUrl, normalizedHost: result.normalizedHost, region: result.region, publicContactRoute: result.publicContactRoute, contactEmail: result.contactEmail, contactFormProtected: result.contactFormProtected, protectionReason: result.protectionReason, verificationStatus: result.verificationStatus, verificationEvidence: result.verificationEvidence, responseTimeMs: result.responseTimeMs, contactStatus, discoveredAt: startedAt, lastVerifiedAt: startedAt, ...personalizeMessage(result.storeName, result.niche, result.storeUrl) });
     }
   }
-  const run = { startedAt, finishedAt: new Date().toISOString(), target: targetCount, discovered: urls.length, qualified, failures, protectedForms, queued };
+  const run = { startedAt, finishedAt: new Date().toISOString(), target: targetCount, discovered: urls.length, qualified, failures, protectedForms, queued, sourcePage: startPage, nextSourcePage: nextCursor.page };
+  writeFileSync(CURSOR_FILE, JSON.stringify(nextCursor, null, 2) + "\n");
   runs.push(run);
   writeFileSync(LEADS_FILE, JSON.stringify(leads, null, 2) + "\n");
   writeFileSync(RUNS_FILE, JSON.stringify(runs, null, 2) + "\n");

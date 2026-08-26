@@ -168,7 +168,10 @@
 - [x] Make Common Crawl discovery resilient to transient 504/5xx responses in the GitHub Actions worker and verify a subsequent non-dry run. (Verified in the successful follow-up run.)
 - [x] Replace the top-level await in the GitHub worker entrypoint with a process-safe async main so GitHub Actions can complete each hourly cycle.
 - [x] Expand GitHub discovery fallback across Common Crawl page offsets and collection snapshots so the cycle can continue toward 84 qualified stores when one snapshot returns too few candidates. (Implemented and type/test/build validated; the latest verified run recorded below-target completion when public results were limited.)
+- [ ] Add additional permitted public discovery source adapters and a bounded cross-source backfill so each hourly GitHub cycle can reach 84 real qualified stores when the primary source is underfilled.
 - [x] Keep automatic outreach preparation in reports and manual review; do not add CAPTCHA bypass or unconfigured bulk email sending.
 - [x] Add a ten-second minimum delay between individually confirmed contact-form sends, with CAPTCHA and robots exclusions. (Not enabled for unattended bulk submission; retained only as a pacing rule for compliant provider workflows.)
 - [x] If the user provides a compliant opt-in campaign provider, add provider-level sending with unsubscribe handling, rate limits, and audit logs; do not submit arbitrary public contact forms automatically. (Deferred: no provider or opt-in campaign credentials supplied; current deployment remains preparation-only.)
+- [ ] Add durable cross-run host suppression and source cursor state so stores previously processed, contacted, or suppressed are never selected again.
+- [ ] Add scalable region/source quotas and report source exhaustion honestly instead of fabricating a daily millions-store capacity.
 - [x] Keep a temporary Common Crawl outage from failing the GitHub job; persist an honest below-target run when the public source is unavailable.
