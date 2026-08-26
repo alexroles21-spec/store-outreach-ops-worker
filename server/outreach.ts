@@ -212,23 +212,27 @@ export async function discoverPublicStoreUrls(target: number, page = 0) {
   const collectionsResponse = await fetchText(COMMON_CRAWL_COLLECTIONS, 7000);
   if (!collectionsResponse.response.ok) throw new Error(`Common Crawl collections failed with ${collectionsResponse.response.status}`);
   const collections = JSON.parse(collectionsResponse.text) as Array<{ id: string }>;
-  const latest = collections[0]?.id;
-  if (!latest) throw new Error("Common Crawl returned no collections");
-  const query = new URL(`https://index.commoncrawl.org/${latest}-index`);
+  const collectionIndex = Math.floor(page / 2);
+  const pageOffset = page % 2;
+  const collection = collections[collectionIndex];
+  if (!collection?.id) return { urls: [], exhausted: true };
+  const query = new URL(`https://index.commoncrawl.org/${collection.id}-index`);
   query.searchParams.set("url", "*.myshopify.com/*");
   query.searchParams.set("output", "json");
   query.searchParams.set("filter", "status:200");
   query.searchParams.set("collapse", "urlkey");
-  query.searchParams.set("page", String(page));
+  query.searchParams.set("page", String(pageOffset));
   query.searchParams.set("limit", String(requestedLimit));
   try {
     const indexResponse = await fetchText(query.toString(), 12000);
     if (!indexResponse.response.ok) throw new Error(`Common Crawl index failed with ${indexResponse.response.status}`);
     const urls = parseCommonCrawlLines(indexResponse.text, target);
-    return { urls, exhausted: urls.length === 0 };
+    const noMoreCollections = collectionIndex >= collections.length - 1;
+    return { urls, exhausted: urls.length === 0 && noMoreCollections };
   } catch (error) {
-    console.warn(JSON.stringify({ event: "discovery_page_skipped", page, error: String(error) }));
-    return { urls: [], exhausted: true };
+    const noMoreCollections = collectionIndex >= collections.length - 1;
+    console.warn(JSON.stringify({ event: "discovery_page_skipped", page, collection: collection.id, error: String(error) }));
+    return { urls: [], exhausted: noMoreCollections };
   }
 }
 
