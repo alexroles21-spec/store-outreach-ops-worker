@@ -75,3 +75,25 @@
 ## Deployment manifest correction
 
 - [x] Add one concrete persistent service manifest that includes the worker command and required runtime variables together.
+
+## Readiness audit requested by user
+
+- [ ] Verify whether the hourly worker is actually scheduled and running in cloud production.
+- [ ] Verify whether 84 real stores per run are sourced, geographically filtered, qualified, and persisted.
+- [ ] Verify whether the contact-form flow records store name, subject/title, niche, route/email, URL, and sent/not-sent state in the two requested pages.
+- [ ] Verify whether a real sender email/provider is configured; do not imply one exists without credentials and quota.
+- [ ] Report clearly which requirements are complete, incomplete, or blocked by missing deployment/provider configuration.
+
+## Immediate production activation
+
+- [ ] Confirm the current project hosting mode and whether an always-on runtime is available.
+- [ ] Activate a persistent worker runtime or clearly request the required hosting upgrade/connection.
+- [ ] Configure the hourly scheduler only after the worker runtime is active.
+- [ ] Verify a real production worker cycle and its durable run record.
+
+## GitHub Actions hourly execution
+
+- [ ] Add a GitHub Actions workflow scheduled at the top of every hour.
+- [ ] Add manual workflow dispatch with a configurable target capped at 84.
+- [ ] Document required GitHub repository secrets and safe dry-run behavior.
+- [ ] Push the workflow to the private repository and verify its configuration.

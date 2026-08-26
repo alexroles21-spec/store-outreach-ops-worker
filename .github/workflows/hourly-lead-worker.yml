@@ -1,0 +1,49 @@
+name: Hourly lead worker
+
+on:
+  schedule:
+    - cron: "0 * * * *"
+  workflow_dispatch:
+    inputs:
+      target_per_run:
+        description: "Maximum stores to qualify in this run"
+        required: false
+        default: "84"
+        type: string
+      dry_run:
+        description: "Start safely without public-source requests"
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hourly-lead-worker
+  cancel-in-progress: false
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      WORKER_INTERVAL_MINUTES: "60"
+      WORKER_TARGET_PER_RUN: ${{ inputs.target_per_run || '84' }}
+      WORKER_DRY_RUN: ${{ inputs.dry_run || 'false' }}
+      WORKER_ONCE: "true"
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Enable pnpm
+        run: corepack enable
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Run one worker cycle
+        run: pnpm worker

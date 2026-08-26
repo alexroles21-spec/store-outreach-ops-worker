@@ -4,6 +4,7 @@ export type WorkerConfig = {
   intervalMinutes: number;
   targetPerRun: number;
   dryRun: boolean;
+  once: boolean;
 };
 
 export function createWorkerConfig(env: NodeJS.ProcessEnv = process.env): WorkerConfig {
@@ -11,6 +12,7 @@ export function createWorkerConfig(env: NodeJS.ProcessEnv = process.env): Worker
     intervalMinutes: Math.max(1, Number(env.WORKER_INTERVAL_MINUTES ?? 60)),
     targetPerRun: Math.min(84, Math.max(1, Number(env.WORKER_TARGET_PER_RUN ?? 84))),
     dryRun: env.WORKER_DRY_RUN === "true",
+    once: env.WORKER_ONCE === "true",
   };
 }
 

@@ -2,7 +2,6 @@ import { createWorkerConfig, createWorkerRunner } from "./runtime";
 
 const config = createWorkerConfig();
 const runner = createWorkerRunner(config);
-const intervalMs = config.intervalMinutes * 60 * 1000;
 
 async function runOnce() {
   const startedAt = Date.now();
@@ -11,9 +10,14 @@ async function runOnce() {
     console.log(JSON.stringify({ event: "cycle_complete", durationMs: Date.now() - startedAt, ...result }));
   } catch (error) {
     console.error(JSON.stringify({ event: "cycle_failed", durationMs: Date.now() - startedAt, error: String(error) }));
+    process.exitCode = 1;
   }
 }
 
 console.log(JSON.stringify({ event: "worker_started", ...config }));
-void runOnce();
-setInterval(() => void runOnce(), intervalMs);
+if (config.once) {
+  await runOnce();
+} else {
+  void runOnce();
+  setInterval(() => void runOnce(), config.intervalMinutes * 60 * 1000);
+}
