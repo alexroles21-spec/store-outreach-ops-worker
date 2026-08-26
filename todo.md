@@ -171,3 +171,4 @@
 - [x] Keep automatic outreach preparation in reports and manual review; do not add CAPTCHA bypass or unconfigured bulk email sending.
 - [x] Add a ten-second minimum delay between individually confirmed contact-form sends, with CAPTCHA and robots exclusions. (Not enabled for unattended bulk submission; retained only as a pacing rule for compliant provider workflows.)
 - [ ] If the user provides a compliant opt-in campaign provider, add provider-level sending with unsubscribe handling, rate limits, and audit logs; do not submit arbitrary public contact forms automatically.
+- [ ] Keep a temporary Common Crawl outage from failing the GitHub job; persist an honest below-target run when the public source is unavailable.

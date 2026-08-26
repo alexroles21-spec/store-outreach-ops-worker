@@ -209,9 +209,24 @@ export function dedupeCandidates(urls: string[]) {
 export async function discoverPublicStoreUrls(target: number, page = 0) {
   // Use the broad Common Crawl pattern with page offsets. Invalid hostname-prefix wildcards return 404.
   const requestedLimit = Math.min(Math.max(target * 2, 200), 1000);
-  const collectionsResponse = await fetchText(COMMON_CRAWL_COLLECTIONS, 7000);
-  if (!collectionsResponse.response.ok) throw new Error(`Common Crawl collections failed with ${collectionsResponse.response.status}`);
-  const collections = JSON.parse(collectionsResponse.text) as Array<{ id: string }>;
+  let collectionsResponse: { response: Response; text: string };
+  try {
+    collectionsResponse = await fetchText(COMMON_CRAWL_COLLECTIONS, 7000);
+  } catch (error) {
+    console.warn(JSON.stringify({ event: "discovery_collections_unavailable", error: String(error) }));
+    return { urls: [], exhausted: true };
+  }
+  if (!collectionsResponse.response.ok) {
+    console.warn(JSON.stringify({ event: "discovery_collections_failed", status: collectionsResponse.response.status }));
+    return { urls: [], exhausted: true };
+  }
+  let collections: Array<{ id: string }>;
+  try {
+    collections = JSON.parse(collectionsResponse.text) as Array<{ id: string }>;
+  } catch (error) {
+    console.warn(JSON.stringify({ event: "discovery_collections_invalid", error: String(error) }));
+    return { urls: [], exhausted: true };
+  }
   const collectionIndex = Math.floor(page / 2);
   const pageOffset = page % 2;
   const collection = collections[collectionIndex];
