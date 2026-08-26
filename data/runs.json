@@ -30,5 +30,17 @@
     "queued": 0,
     "sourcePage": 0,
     "nextSourcePage": 1
+  },
+  {
+    "startedAt": "2026-08-26T21:46:06.820Z",
+    "finishedAt": "2026-08-26T21:46:50.304Z",
+    "target": 84,
+    "discovered": 81,
+    "qualified": 36,
+    "failures": 6,
+    "protectedForms": 7,
+    "queued": 26,
+    "sourcePage": 1,
+    "nextSourcePage": 2
   }
 ]
