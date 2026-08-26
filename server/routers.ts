@@ -17,6 +17,7 @@ import {
   upsertAutomationSettings,
 } from "./db";
 import { personalizeMessage, runDiscoveryCycle } from "./outreach";
+import { markLeadSentManually } from "./manualSend";
 
 const leadStatus = z.enum(["not_contacted", "queued", "review", "sent", "failed", "do_not_contact"]);
 
@@ -52,6 +53,9 @@ export const appRouter = router({
         await updateLeadReview(input.id, input.status, input.note);
         return { success: true } as const;
       }),
+    markSent: adminProcedure
+      .input(z.object({ id: z.number().int().positive() }))
+      .mutation(({ input }) => markLeadSentManually(input.id)),
   }),
   message: router({
     preview: adminProcedure

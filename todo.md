@@ -113,3 +113,48 @@
 - [ ] Add a non-destructive Drizzle migration step to GitHub Actions so the database used by the worker is synchronized before each real cycle.
 - [ ] Rerun the real 84-store workflow and inspect its run output after migration.
 - [ ] Correct the GitHub `DATABASE_URL` secret so it includes the database name required by Drizzle.
+
+## Always-on hosting activation
+
+- [ ] Confirm the project is running under Reserved/always-on hosting.
+- [ ] Restart the deployed service so the worker runtime uses the always-on process.
+- [ ] Verify persistent worker logs and one durable production cycle.
+- [ ] Configure or verify the hourly schedule under the always-on execution model.
+
+## Selected execution model: GitHub Actions
+
+- [ ] Treat GitHub Actions hourly jobs as the sole execution path for this deployment.
+- [ ] Resolve or confirm external database reachability from GitHub-hosted runners.
+- [ ] Run a non-dry 84-store workflow and inspect durable results.
+
+## Simplified GitHub-centered architecture
+
+- [ ] Make GitHub Actions the only scheduler and execution center in the documentation and workflow.
+- [ ] Choose and document durable storage that is actually reachable from GitHub Actions; do not pretend GitHub Actions runtime files are a permanent database.
+- [ ] Keep the two requested pages as a read-only monitoring/reporting surface backed by the chosen durable store.
+- [ ] Re-run a real cycle only after the selected storage path is configured and reachable.
+
+## CAPTCHA manual review workflow
+
+- [x] Add a protected-form review queue with a prefilled subject and message draft.
+- [x] Add a direct contact-form link and a manual-send status transition.
+- [x] Ensure CAPTCHA-protected records never enter automatic submission.
+- [x] Add tests for review routing, draft fidelity, and manual sent-state recording.
+
+## Sender identity update
+
+- [x] Use `Alex.roles21@gmail.com` as the sender/contact-form email in the outreach draft.
+- [x] Use the English signature `Alex — E-commerce Expert & Global Marketing Specialist`.
+- [x] Verify the updated sender identity and signature in message previews and review drafts.
+- [x] Fix the sender-email preview edit against the current Leads JSX after the targeted replacement missed.
+
+## Manual review draft completion
+
+- [x] Implement the protected-form review card with sender email, subject, body, and direct contact-form link.
+- [x] Add a test proving a protected-form manual draft preserves sender identity and message structure.
+
+## Manual-send completion gap
+
+- [x] Add an explicit protected-form `Mark as sent` action that persists `sent` status and an audit event.
+- [x] Add tests proving CAPTCHA leads stay in review until manually marked sent.
+- [x] Add tests proving manual sent-state changes create an audit event.

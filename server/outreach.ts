@@ -338,10 +338,23 @@ export async function qualifyStore(storeUrl: string): Promise<QualificationResul
   }
 }
 
+export const OUTREACH_SENDER_EMAIL = "Alex.roles21@gmail.com";
+export const OUTREACH_SIGNATURE = "Growth Team";
+
 export function personalizeMessage(storeName: string, niche: string, storeUrl: string) {
-  const subject = `Quick question about ${storeName}’s scaling 📈`;
-  const body = `Hey ${storeName} team,\n\nI was just analyzing top-performing e-commerce brands in the ${niche} space and came across your store. Great branding and product lineup!\n\nQuick question: Are you currently using AI UGC video ads to test new products and scale globally without the headache of shooting content?\n\nMost ${niche} stores are leaving money on the table because traditional content creation is too slow and expensive. With AI UGC, you can generate endless high-converting, viral video ads in seconds—in any language and with any persona.\n\nI put together a quick breakdown of how top brands are using this right now:\n\n👉 Check it out here: https://ugc-gen-ai.carrd.co\n\nStore link: ${storeUrl}\n\nKeep crushing it,  \nGrowth Team`;
-  return { subject, body, storeUrl };
+  const subject = `Quick question about ${storeName}’s scaling`;
+  const body = `Hey ${storeName} team,\n\nI was just analyzing top-performing e-commerce brands in the ${niche} space and came across your store. Great branding and product lineup!\n\nQuick question: Are you currently using AI UGC video ads to test new products and scale globally without the headache of shooting content?\n\nMost ${niche} stores are leaving money on the table because traditional content creation is too slow and expensive. With AI UGC, you can generate endless high-converting, viral video ads in seconds—in any language and with any persona.\n\nI put together a quick breakdown of how top brands are using this right now:\n\n👉 Check it out here: https://ugc-gen-ai.carrd.co\n\nKeep crushing it,  \n${OUTREACH_SIGNATURE}`;
+  return { senderEmail: OUTREACH_SENDER_EMAIL, subject, body, storeUrl };
+}
+
+export function buildManualReviewDraft(storeName: string, niche: string, storeUrl: string, contactRoute: string) {
+  return { ...personalizeMessage(storeName, niche, storeUrl), contactRoute };
+}
+
+export function getContactDisposition(input: Pick<QualificationResult, "verificationStatus" | "publicContactRoute" | "contactFormProtected">) {
+  if (input.contactFormProtected) return "review" as const;
+  if (input.verificationStatus === "qualified" && input.publicContactRoute) return "queued" as const;
+  return "not_contacted" as const;
 }
 
 export async function runDiscoveryCycle(targetCount = 84, idempotencyKey?: string) {
@@ -369,7 +382,8 @@ export async function runDiscoveryCycle(targetCount = 84, idempotencyKey?: strin
         if (result.verificationStatus === "qualified") qualified += 1;
         else failures += 1;
         if (result.contactFormProtected) protectedForms += 1;
-        const isQueueable = result.verificationStatus === "qualified" && Boolean(result.publicContactRoute) && !result.contactFormProtected;
+          const contactDisposition = getContactDisposition(result);
+          const isQueueable = contactDisposition === "queued";
         const saved = await upsertLead({
           normalizedHost: result.normalizedHost,
           storeName: result.storeName,
@@ -385,7 +399,7 @@ export async function runDiscoveryCycle(targetCount = 84, idempotencyKey?: strin
           verificationStatus: result.verificationStatus,
           responseTimeMs: result.responseTimeMs,
           verificationEvidence: result.verificationEvidence,
-          contactStatus: result.contactFormProtected ? "review" : isQueueable ? "queued" : "not_contacted",
+          contactStatus: contactDisposition,
           doNotContact: false,
           lastVerifiedAt: new Date(),
         });

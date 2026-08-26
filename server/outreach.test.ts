@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { buildHourlyIdempotencyKey } from "./scheduled";
-import { collectGeoCandidates, dedupeCandidates, detectProtectedForm, normalizeHost, personalizeMessage, qualifyStore } from "./outreach";
+import { buildManualReviewDraft, collectGeoCandidates, dedupeCandidates, detectProtectedForm, getContactDisposition, normalizeHost, personalizeMessage, qualifyStore } from "./outreach";
 
 describe("outreach utilities", () => {
   afterEach(() => vi.unstubAllGlobals());
@@ -62,13 +62,28 @@ describe("outreach utilities", () => {
 
   it("preserves the supplied message structure while personalizing variables", () => {
     const message = personalizeMessage("North Star Goods", "Beauty", "https://northstar.example");
-    expect(message.subject).toContain("North Star Goods");
+    expect(message.subject).toBe("Quick question about North Star Goods’s scaling");
     expect(message.body).toContain("North Star Goods team");
     expect(message.body).toContain("Beauty space");
     expect(message.body).toContain("https://ugc-gen-ai.carrd.co");
-    expect(message.body).toContain("Store link: https://northstar.example");
-    expect(message.body).toContain("Keep crushing it");
+    expect(message.body).toContain("Growth Team");
+    expect(message.body).not.toContain("[store_name]");
+    expect(message.body).not.toContain("[niche]");
+    expect(message.senderEmail).toBe("Alex.roles21@gmail.com");
     expect(message.storeUrl).toBe("https://northstar.example");
+  });
+
+  it("routes CAPTCHA forms to review and open email routes to queue", () => {
+    expect(getContactDisposition({ verificationStatus: "qualified", publicContactRoute: "https://store.example/contact", contactFormProtected: true })).toBe("review");
+    expect(getContactDisposition({ verificationStatus: "qualified", publicContactRoute: "mailto:hello@store.example", contactFormProtected: false })).toBe("queued");
+  });
+
+  it("builds a protected-form review draft with the sender and contact route", () => {
+    const draft = buildManualReviewDraft("North Star Goods", "Beauty", "https://northstar.example", "https://northstar.example/contact");
+    expect(draft.senderEmail).toBe("Alex.roles21@gmail.com");
+    expect(draft.subject).toContain("North Star Goods");
+    expect(draft.body).toContain("Growth Team");
+    expect(draft.contactRoute).toBe("https://northstar.example/contact");
   });
 
   it("uses the same idempotency key for retries in one UTC hour", () => {
