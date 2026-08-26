@@ -8,5 +8,15 @@
     "failures": 5,
     "protectedForms": 5,
     "queued": 9
+  },
+  {
+    "startedAt": "2026-08-26T21:06:35.202Z",
+    "finishedAt": "2026-08-26T21:07:17.368Z",
+    "target": 84,
+    "discovered": 15,
+    "qualified": 13,
+    "failures": 0,
+    "protectedForms": 4,
+    "queued": 8
   }
 ]
