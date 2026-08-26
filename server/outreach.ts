@@ -207,7 +207,8 @@ export function dedupeCandidates(urls: string[]) {
 }
 
 export async function discoverPublicStoreUrls(target: number, page = 0) {
-  // Use the broad Common Crawl pattern with page offsets. Invalid hostname-prefix wildcards return 404.
+  // Query more than one public storefront pattern, then move across crawl snapshots and page offsets.
+  const patterns = ["*.myshopify.com/*", "*.shopify.com/*"];
   const requestedLimit = Math.min(Math.max(target * 2, 200), 1000);
   let collectionsResponse: { response: Response; text: string };
   try {
@@ -227,12 +228,13 @@ export async function discoverPublicStoreUrls(target: number, page = 0) {
     console.warn(JSON.stringify({ event: "discovery_collections_invalid", error: String(error) }));
     return { urls: [], exhausted: true };
   }
-  const collectionIndex = Math.floor(page / 2);
-  const pageOffset = page % 2;
+  const patternIndex = Math.floor(page / 2) % patterns.length;
+  const collectionIndex = Math.floor(page / (patterns.length * 2));
+  const pageOffset = Math.floor(page / patterns.length) % 2;
   const collection = collections[collectionIndex];
   if (!collection?.id) return { urls: [], exhausted: true };
   const query = new URL(`https://index.commoncrawl.org/${collection.id}-index`);
-  query.searchParams.set("url", "*.myshopify.com/*");
+  query.searchParams.set("url", patterns[patternIndex]);
   query.searchParams.set("output", "json");
   query.searchParams.set("filter", "status:200");
   query.searchParams.set("collapse", "urlkey");
@@ -246,7 +248,7 @@ export async function discoverPublicStoreUrls(target: number, page = 0) {
     return { urls, exhausted: urls.length === 0 && noMoreCollections };
   } catch (error) {
     const noMoreCollections = collectionIndex >= collections.length - 1;
-    console.warn(JSON.stringify({ event: "discovery_page_skipped", page, collection: collection.id, error: String(error) }));
+    console.warn(JSON.stringify({ event: "discovery_page_skipped", page, pattern: patterns[patternIndex], collection: collection.id, error: String(error) }));
     return { urls: [], exhausted: noMoreCollections };
   }
 }
