@@ -33,6 +33,12 @@ jobs:
       WORKER_TARGET_PER_RUN: ${{ inputs.target_per_run || '84' }}
       WORKER_DRY_RUN: ${{ inputs.dry_run || 'false' }}
       WORKER_ONCE: "true"
+      AUTO_DISPATCH: ${{ secrets.AUTO_DISPATCH || 'false' }}
+      LOCAL_WEBHOOK_ENDPOINT: ${{ secrets.LOCAL_WEBHOOK_ENDPOINT }}
+      LOCAL_WEBHOOK_TOKEN: ${{ secrets.LOCAL_WEBHOOK_TOKEN }}
+      LOCAL_WEBHOOK_ALLOWED_HOST: ${{ secrets.LOCAL_WEBHOOK_ALLOWED_HOST }}
+      DISPATCH_INTERVAL_MS: "43000"
+      DISPATCH_MAX_PER_RUN: "84"
     steps:
       - name: Check out repository
         uses: actions/checkout@v4

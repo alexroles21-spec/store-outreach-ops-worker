@@ -3,7 +3,7 @@ import { createWorkerConfig, createWorkerRunner } from "./runtime";
 
 describe("worker runtime", () => {
   it("clamps the target to 84 and supports safe dry-run configuration", () => {
-    expect(createWorkerConfig({ WORKER_INTERVAL_MINUTES: "60", WORKER_TARGET_PER_RUN: "120", WORKER_DRY_RUN: "true", WORKER_ONCE: "true" })).toEqual({ intervalMinutes: 60, targetPerRun: 84, dryRun: true, once: true });
+    expect(createWorkerConfig({ WORKER_INTERVAL_MINUTES: "60", WORKER_TARGET_PER_RUN: "120", WORKER_DRY_RUN: "true", WORKER_ONCE: "true" })).toEqual({ intervalMinutes: 60, targetPerRun: 84, dryRun: true, once: true, storage: "database" });
   });
 
   it("does not call the discovery cycle in dry-run mode", async () => {

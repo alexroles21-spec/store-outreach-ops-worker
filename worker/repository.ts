@@ -1,8 +1,9 @@
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { collectGeoCandidates, qualifyStore, personalizeMessage } from "../server/outreach";
+import { dispatchQueuedLeads, type DispatcherConfig } from "./dispatcher";
 
-type RepoLead = ReturnType<typeof personalizeMessage> & {
+export type RepoLead = ReturnType<typeof personalizeMessage> & {
   id: number;
   storeName: string;
   niche: string;
@@ -17,6 +18,11 @@ type RepoLead = ReturnType<typeof personalizeMessage> & {
   verificationEvidence: string;
   responseTimeMs?: number;
   contactStatus: "queued" | "review" | "not_contacted" | "sent";
+  optedIn?: boolean;
+  deliveryStatus?: "pending" | "sent" | "failed" | "skipped";
+  deliveryAttempts?: number;
+  deliveredAt?: string;
+  deliveryError?: string;
   discoveredAt: string;
   lastVerifiedAt: string;
 };
@@ -68,7 +74,15 @@ export async function runRepositoryCycle(targetCount = 84) {
       leads.push({ id: leads.length + 1, storeName: result.storeName, niche: result.niche, storeUrl: result.storeUrl, normalizedHost: result.normalizedHost, region: result.region, publicContactRoute: result.publicContactRoute, contactEmail: result.contactEmail, contactFormProtected: result.contactFormProtected, protectionReason: result.protectionReason, verificationStatus: result.verificationStatus, verificationEvidence: result.verificationEvidence, responseTimeMs: result.responseTimeMs, contactStatus, discoveredAt: startedAt, lastVerifiedAt: startedAt, ...personalizeMessage(result.storeName, result.niche, result.storeUrl) });
     }
   }
-  const run = { startedAt, finishedAt: new Date().toISOString(), target: targetCount, discovered: urls.length, qualified, failures, protectedForms, queued, sourcePage: startPage, nextSourcePage: nextCursor.page };
+  let dispatch = { attempted: 0, sent: 0, failed: 0, skipped: 0 };
+  const endpoint = process.env.LOCAL_WEBHOOK_ENDPOINT;
+  const token = process.env.LOCAL_WEBHOOK_TOKEN;
+  const allowedHost = process.env.LOCAL_WEBHOOK_ALLOWED_HOST;
+  if (process.env.AUTO_DISPATCH === "true" && endpoint && token && allowedHost && !process.env.WORKER_DRY_RUN?.includes("true")) {
+    const config: DispatcherConfig = { endpoint, token, allowedHost, intervalMs: Math.max(43_000, Number(process.env.DISPATCH_INTERVAL_MS ?? 43_000)), maxPerRun: Math.min(84, Number(process.env.DISPATCH_MAX_PER_RUN ?? 84)), timeoutMs: Math.max(1000, Number(process.env.DISPATCH_TIMEOUT_MS ?? 15_000)) };
+    dispatch = await dispatchQueuedLeads(leads, config, () => undefined);
+  }
+  const run = { startedAt, finishedAt: new Date().toISOString(), target: targetCount, discovered: urls.length, qualified, failures, protectedForms, queued, dispatch, sourcePage: startPage, nextSourcePage: nextCursor.page };
   writeFileSync(CURSOR_FILE, JSON.stringify(nextCursor, null, 2) + "\n");
   runs.push(run);
   writeFileSync(LEADS_FILE, JSON.stringify(leads, null, 2) + "\n");
