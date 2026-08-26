@@ -97,3 +97,4 @@
 - [ ] Add manual workflow dispatch with a configurable target capped at 84.
 - [ ] Document required GitHub repository secrets and safe dry-run behavior.
 - [ ] Push the workflow to the private repository and verify its configuration.
+- [ ] Fix GitHub Actions pnpm bootstrap so the hourly workflow can start on a clean runner.
