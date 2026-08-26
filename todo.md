@@ -103,23 +103,23 @@
 ## Live production blockers
 
 - [x] Add the required `DATABASE_URL` repository secret and run a non-dry GitHub Actions cycle.
-- [x] Inspect production database/run data after a real cycle for qualified counts, geo filtering, and persistence.
-- [x] Add and verify explicit message subject/title and sent/not-sent outcome fields on both requested pages.
+- [x] Inspect production database/run data after a real cycle for qualified counts, geo filtering, and persistence. (Superseded: the active deployment uses repository reports; no database cycle was claimed successful.)
+- [x] Add and verify explicit message subject/title and sent/not-sent outcome fields on both requested pages. (Superseded by repository HTML reports and the manual-review draft fields.)
 - [x] Keep the execution model explicitly GitHub Actions hourly jobs, or activate a separate persistent runtime; do not claim both are active.
 - [x] Attempt to configure the GitHub Actions `DATABASE_URL` secret without exposing its value.
 - [x] Verify whether the GitHub Actions `DATABASE_URL` secret was added, without revealing its value.
-- [x] Apply and verify the additive outreach-run schema migration against the database used by GitHub Actions.
-- [x] Rerun the real 84-store workflow after the schema is synchronized.
-- [x] Add a non-destructive Drizzle migration step to GitHub Actions so the database used by the worker is synchronized before each real cycle.
-- [x] Rerun the real 84-store workflow and inspect its run output after migration.
-- [x] Correct the GitHub `DATABASE_URL` secret so it includes the database name required by Drizzle.
+- [x] Apply and verify the additive outreach-run schema migration against the database used by GitHub Actions. (Superseded: repository storage is the active GitHub Actions persistence path.)
+- [x] Rerun the real 84-store workflow after the schema is synchronized. (Superseded: the active workflow no longer depends on the database schema.)
+- [x] Add a non-destructive Drizzle migration step to GitHub Actions so the database used by the worker is synchronized before each real cycle. (Superseded: repository mode does not require Drizzle migrations.)
+- [x] Rerun the real 84-store workflow and inspect its run output after migration. (Superseded by the successful repository-backed workflow run.)
+- [x] Correct the GitHub `DATABASE_URL` secret so it includes the database name required by Drizzle. (Superseded: `DATABASE_URL` is not required in the active repository-storage workflow.)
 
 ## Always-on hosting activation
 
-- [x] Confirm the project is running under Reserved/always-on hosting.
-- [x] Restart the deployed service so the worker runtime uses the always-on process.
-- [x] Verify persistent worker logs and one durable production cycle.
-- [x] Configure or verify the hourly schedule under the always-on execution model.
+- [x] Confirm the project is running under Reserved/always-on hosting. (Superseded: GitHub Actions is the sole active execution path.)
+- [x] Restart the deployed service so the worker runtime uses the always-on process. (Superseded: no always-on process is active.)
+- [x] Verify persistent worker logs and one durable production cycle. (Superseded: the verified durable cycle is the GitHub commit-backed run.)
+- [x] Configure or verify the hourly schedule under the always-on execution model. (Superseded: the active schedule is `.github/workflows/hourly-lead-worker.yml`.)
 
 ## Selected execution model: GitHub Actions
 
@@ -161,9 +161,9 @@
 
 ## Final GitHub-only verification
 
-- [ ] Run one non-dry GitHub Actions cycle in repository-storage mode and verify committed data and report artifacts.
-- [ ] Serve or clearly expose the generated dashboard and lead reports and verify both pages.
-- [ ] Remove mixed always-on/DB-backed claims from the final documentation, or label those paths optional and inactive.
-- [ ] Label DB migration and external-database validation history as superseded by repository storage instead of claiming success.
-- [x] Make Common Crawl discovery resilient to transient 504/5xx responses in the GitHub Actions worker and verify a subsequent non-dry run.
-- [ ] Replace the top-level await in the GitHub worker entrypoint with a process-safe async main so GitHub Actions can complete each hourly cycle.
+- [x] Run one non-dry GitHub Actions cycle in repository-storage mode and verify committed data and report artifacts.
+- [x] Serve or clearly expose the generated dashboard and lead reports and verify both pages through the committed `data/dashboard.html` and `data/leads.html` repository links.
+- [x] Remove mixed always-on/DB-backed claims from the final documentation, or label those paths optional and inactive.
+- [x] Label DB migration and external-database validation history as superseded by repository storage instead of claiming success.
+- [x] Make Common Crawl discovery resilient to transient 504/5xx responses in the GitHub Actions worker and verify a subsequent non-dry run. (Verified in the successful follow-up run.)
+- [x] Replace the top-level await in the GitHub worker entrypoint with a process-safe async main so GitHub Actions can complete each hourly cycle.
