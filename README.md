@@ -10,7 +10,7 @@ The supplied outreach structure is preserved. Only store name, niche, and store 
 
 ## Optional monitoring dashboard
 
-The repository also contains an authenticated dashboard for observing the worker’s run records, lead evidence, queue states, review lane, suppression history, and personalization previews. It is a secondary monitoring surface, not the worker itself. The dashboard is a secondary monitoring surface. The active hourly execution is the repository-backed GitHub Actions job, not the managed platform scheduler or an always-on process.
+The repository also contains an authenticated dashboard for observing the worker’s run records, lead evidence, queue states, review lane, suppression history, and personalization previews. It is a secondary monitoring surface, not the worker itself. The active hourly execution is the repository-backed GitHub Actions job, not the managed platform scheduler or an always-on process.
 
 ## GitHub Actions execution
 

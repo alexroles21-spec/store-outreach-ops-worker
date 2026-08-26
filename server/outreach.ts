@@ -124,20 +124,30 @@ export function detectProtectedForm(html: string) {
   return hit ? { protected: true, reason: hit[0] } : { protected: false };
 }
 
-async function fetchText(url: string, timeoutMs = 6500) {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), timeoutMs);
-  try {
-    const response = await fetch(url, {
-      redirect: "follow",
-      signal: controller.signal,
-      headers: { "user-agent": USER_AGENT, accept: "text/html,application/xhtml+xml" },
-    });
-    const text = await response.text();
-    return { response, text };
-  } finally {
-    clearTimeout(timeout);
+async function fetchText(url: string, timeoutMs = 6500, maxAttempts = 3) {
+  let lastError: unknown;
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const response = await fetch(url, {
+        redirect: "follow",
+        signal: controller.signal,
+        headers: { "user-agent": USER_AGENT, accept: "text/html,application/xhtml+xml" },
+      });
+      const text = await response.text();
+      const retryable = response.status === 408 || response.status === 425 || response.status === 429 || response.status >= 500;
+      if (!retryable || attempt === maxAttempts) return { response, text };
+      await new Promise(resolve => setTimeout(resolve, 750 * attempt));
+    } catch (error) {
+      lastError = error;
+      if (attempt === maxAttempts) throw error;
+      await new Promise(resolve => setTimeout(resolve, 750 * attempt));
+    } finally {
+      clearTimeout(timeout);
+    }
   }
+  throw lastError instanceof Error ? lastError : new Error(`Unable to fetch ${url}`);
 }
 
 async function robotsAllow(url: string) {

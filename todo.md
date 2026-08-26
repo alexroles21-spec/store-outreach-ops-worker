@@ -165,3 +165,4 @@
 - [ ] Serve or clearly expose the generated dashboard and lead reports and verify both pages.
 - [ ] Remove mixed always-on/DB-backed claims from the final documentation, or label those paths optional and inactive.
 - [ ] Label DB migration and external-database validation history as superseded by repository storage instead of claiming success.
+- [ ] Make Common Crawl discovery resilient to transient 504/5xx responses in the GitHub Actions worker and verify a subsequent non-dry run.
