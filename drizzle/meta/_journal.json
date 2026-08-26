@@ -1,5 +1,27 @@
 {
   "version": "7",
   "dialect": "mysql",
-  "entries": []
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1787736943580,
+      "tag": "0000_flat_puff_adder",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1787737527626,
+      "tag": "0001_easy_magus",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1787738189635,
+      "tag": "0002_steady_killraven",
+      "breakpoints": true
+    }
+  ]
 }
