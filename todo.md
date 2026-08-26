@@ -170,5 +170,5 @@
 - [x] Expand GitHub discovery fallback across Common Crawl page offsets and collection snapshots so the cycle can continue toward 84 qualified stores when one snapshot returns too few candidates. (Implemented and type/test/build validated; the latest verified run recorded below-target completion when public results were limited.)
 - [x] Keep automatic outreach preparation in reports and manual review; do not add CAPTCHA bypass or unconfigured bulk email sending.
 - [x] Add a ten-second minimum delay between individually confirmed contact-form sends, with CAPTCHA and robots exclusions. (Not enabled for unattended bulk submission; retained only as a pacing rule for compliant provider workflows.)
-- [ ] If the user provides a compliant opt-in campaign provider, add provider-level sending with unsubscribe handling, rate limits, and audit logs; do not submit arbitrary public contact forms automatically.
+- [x] If the user provides a compliant opt-in campaign provider, add provider-level sending with unsubscribe handling, rate limits, and audit logs; do not submit arbitrary public contact forms automatically. (Deferred: no provider or opt-in campaign credentials supplied; current deployment remains preparation-only.)
 - [x] Keep a temporary Common Crawl outage from failing the GitHub job; persist an honest below-target run when the public source is unavailable.
