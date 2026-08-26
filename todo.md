@@ -175,3 +175,8 @@
 - [x] Add durable cross-run host suppression and source cursor state so stores previously processed, contacted, or suppressed are never selected again.
 - [x] Add scalable region/source quotas and report source exhaustion honestly instead of fabricating a daily millions-store capacity. (Implemented as bounded per-source retrieval, regional filtering, crawl cursor progression, and truthful source-exhaustion reporting.)
 - [x] Keep a temporary Common Crawl outage from failing the GitHub job; persist an honest below-target run when the public source is unavailable.
+- [x] Package the standalone local authorized POST worker with a continuous background-service launcher and verify automatic non-mock execution against a local test endpoint. (End-to-end loop smoke test passed with a live local HTTP server and persisted `succeeded`/200 SQLite result.)
+- [x] Add a guarded GitHub sequential webhook dispatcher for opted-in, non-CAPTCHA leads using a repository secret token, an allowlisted endpoint, 43-second pacing, and durable delivery status. (Implemented and covered by dispatcher tests; activation remains disabled until the operator supplies GitHub secrets and a reachable authorized endpoint.)
+- [x] Add a persisted explicit opt-in registry for repository-mode leads and initialize delivery fields from that registry.
+- [x] Document the self-hosted-runner requirement for a webhook endpoint bound to the operator’s local machine. (Documented; live GitHub dispatch verification remains pending because no runner or endpoint was supplied.)
+- [ ] Verify one authorized GitHub dispatch integration path after a self-hosted runner and repository secrets are configured.

@@ -18,5 +18,29 @@
     "failures": 0,
     "protectedForms": 4,
     "queued": 8
+  },
+  {
+    "startedAt": "2026-08-26T21:21:29.332Z",
+    "finishedAt": "2026-08-26T21:22:07.225Z",
+    "target": 84,
+    "discovered": 40,
+    "qualified": 4,
+    "failures": 4,
+    "protectedForms": 0,
+    "queued": 0,
+    "sourcePage": 0,
+    "nextSourcePage": 1
+  },
+  {
+    "startedAt": "2026-08-26T21:46:06.820Z",
+    "finishedAt": "2026-08-26T21:46:50.304Z",
+    "target": 84,
+    "discovered": 81,
+    "qualified": 36,
+    "failures": 6,
+    "protectedForms": 7,
+    "queued": 26,
+    "sourcePage": 1,
+    "nextSourcePage": 2
   }
 ]
