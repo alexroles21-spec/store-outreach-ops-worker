@@ -1,35 +1,25 @@
-# Outreach OS
+# Store Outreach Worker
 
-Outreach OS is a private authenticated operations dashboard for discovering and qualifying public e-commerce leads. It keeps the workflow evidence-first: each record stores the live verification result, normalized host, public contact route, protection signals, campaign status, and audit events.
+This repository’s primary deliverable is a **GitHub-ready Node worker service** for hourly public e-commerce lead discovery and qualification. It starts immediately, repeats on a configured interval, prevents overlapping cycles, and uses an hourly idempotency key so a retry does not create a duplicate run record.
 
-## What is implemented
+The worker entrypoint is `worker/index.ts` and the command is `pnpm worker`. Configure the persistent cloud runtime with `DATABASE_URL`, `WORKER_INTERVAL_MINUTES=60`, `WORKER_TARGET_PER_RUN=84`, and `WORKER_DRY_RUN=false`. `worker/CONFIGURATION.md` and `Procfile` define the runtime contract. `WORKER_DRY_RUN=true` is available for safe startup checks.
 
-The dashboard has two private routes. **Command center** shows hourly target-versus-qualified metrics, recent cycles, protected-form counts, queued outreach, failures, and the automation state. **Lead directory** provides search and status filtering, a detail pane with verification evidence, a review signal for protected forms, suppression controls, and an exact message preview.
+The pipeline uses permitted public sources, checks robots.txt, filters for the requested US, Canada, Europe, and Australia regions, backfills through source pages until the source reports exhaustion or the target is reached, verifies live HTTP responses, records response timing and evidence, extracts store identity and niche signals, prevents duplicate hosts, and classifies CAPTCHA or anti-bot contact forms as review-only. It never attempts to bypass CAPTCHA or similar controls and never fabricates emails or delivery outcomes.
 
-The worker discovers public URLs through the Common Crawl URL index, then performs a live request with a descriptive user agent. It checks robots.txt before research, follows redirects, records HTTP evidence, looks for e-commerce signals, extracts a title and niche, detects public contact routes, and classifies common CAPTCHA or anti-bot markers. Protected forms are written to the review lane; the worker never attempts to bypass them.
+The supplied outreach structure is preserved. Only store name, niche, and store URL variables are personalized, and the promotional link remains `https://ugc-gen-ai.carrd.co`. Public business contact routes are recorded for a later compliant transport; the code does not pretend an email was sent when no real provider is configured.
 
-The message preview preserves the supplied structure and personalizes only the store name, niche, and store URL variables. It keeps the promotional link `https://ugc-gen-ai.carrd.co`.
+## Optional monitoring dashboard
 
-## Hourly workflow
+The repository also contains an authenticated dashboard for observing the worker’s run records, lead evidence, queue states, review lane, suppression history, and personalization previews. It is a secondary monitoring surface, not the worker itself. The dashboard’s hourly callback is available when using the managed platform scheduler; the standalone `pnpm worker` process is the intended always-running service for a persistent cloud runtime.
 
-The hourly callback is mounted at `/api/scheduled/discoverLeads` and authenticates scheduled requests through the platform SDK. It looks up automation settings by the platform-provided cron task UID, caps each run at 84 targets, updates a durable run record, and is safe to retry at the record level through hostname deduplication. The dashboard includes manual Run now and Enable hourly controls.
+## GitHub and runtime distinction
 
-The platform scheduler requires the site to be deployed before an hourly task is created. After deployment, sign in as an administrator and use **Enable hourly** once. The schedule uses the six-field UTC expression `0 0 * * * *`.
+GitHub stores and versions this code. GitHub is not the machine that keeps a Node process alive. Connect this private repository to an always-on Node runtime such as Manus Reserved Hosting or another persistent cloud service, configure automatic restarts, and keep the process command as `pnpm worker`. Do not rely on an autoscaling request-scoped runtime to keep `setInterval` alive.
 
-## Important boundaries
+## Validation
 
-This version does not fabricate stores, emails, ratings, testimonials, or delivery outcomes. It does not use proxy rotation, CAPTCHA bypass, or stealth mechanisms. A lead is queueable only when it has a public route, is live and qualified, is not suppressed, and does not expose a protected contact form. A real outbound transport can be added later through a compliant provider after sender-domain authentication and quota approval; until then the system records a queue state without pretending that a message was sent.
+The codebase passes `pnpm check`, `pnpm test`, and `pnpm build`. The worker entrypoint was smoke-tested directly with `WORKER_DRY_RUN=true`; the full Vitest suite covers normalization, deduplication, CAPTCHA classification, qualified/failed/inactive verification, response timing, message URL interpolation, task-window idempotency, and worker overlap protection.
 
-## Development
+## Safety and production prerequisites
 
-Run `pnpm check` for TypeScript validation, `pnpm test` for the Vitest suite, and `pnpm build` for the production bundle. Database schema changes are defined in `drizzle/schema.ts`, generated through Drizzle, reviewed, and applied through the managed database migration workflow.
-
-## Production prerequisites
-
-Use an authenticated production deployment and promote the project owner to the administrator role if needed. Configure a real sender domain and a provider only when the provider account has approved quota, authenticated DNS records, and a lawful process for commercial outreach. Keep any provider credentials in managed server secrets; never place them in client code or commit them to GitHub.
-
-## GitHub-ready worker service
-
-The primary service entrypoint is `worker/index.ts`, launched with `pnpm worker`. It starts one cycle immediately and then runs on a configurable interval while preventing overlapping cycles. Set `WORKER_INTERVAL_MINUTES=60` and `WORKER_TARGET_PER_RUN=84` in the cloud runtime. The worker reuses the verified lead pipeline and hourly idempotency key, so retries in the same hour do not create a second run record.
-
-GitHub is the source repository for this code; it is not the machine that runs a process continuously. To keep the worker alive, connect this private repository to a persistent Node runtime such as Manus Reserved Hosting or another cloud service that supports always-on processes. The existing web dashboard can remain deployed separately as the private monitoring surface. Do not use Autoscale for the standalone worker because a sleeping or request-scoped runtime cannot guarantee a continuously running interval.
+Use only public business contact routes permitted by their site terms and applicable commercial-communication rules. Maintain suppression history and respect opt-out requests. Add outbound provider credentials only as managed server secrets after sender-domain authentication and provider quota approval. Never commit secrets to GitHub or expose them in client code.

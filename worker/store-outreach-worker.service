@@ -1,0 +1,20 @@
+[Unit]
+Description=Store Outreach hourly lead discovery worker
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=outreach-worker
+WorkingDirectory=/opt/store-outreach-ops
+ExecStart=/usr/bin/pnpm worker
+Restart=always
+RestartSec=10
+Environment=NODE_ENV=production
+Environment=WORKER_INTERVAL_MINUTES=60
+Environment=WORKER_TARGET_PER_RUN=84
+Environment=WORKER_DRY_RUN=false
+EnvironmentFile=/etc/store-outreach-worker/worker.env
+
+[Install]
+WantedBy=multi-user.target

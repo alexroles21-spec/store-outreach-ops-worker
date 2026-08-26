@@ -1,31 +1,19 @@
-import { runDiscoveryCycle } from "../server/outreach";
+import { createWorkerConfig, createWorkerRunner } from "./runtime";
 
-const intervalMinutes = Math.max(1, Number(process.env.WORKER_INTERVAL_MINUTES ?? 60));
-const targetPerRun = Math.min(84, Math.max(1, Number(process.env.WORKER_TARGET_PER_RUN ?? 84)));
-const intervalMs = intervalMinutes * 60 * 1000;
-let running = false;
-
-function hourlyKey() {
-  return `worker:${Math.floor(Date.now() / 3600000)}`;
-}
+const config = createWorkerConfig();
+const runner = createWorkerRunner(config);
+const intervalMs = config.intervalMinutes * 60 * 1000;
 
 async function runOnce() {
-  if (running) {
-    console.warn("[Worker] Previous cycle is still running; skipping overlap.");
-    return;
-  }
-  running = true;
   const startedAt = Date.now();
   try {
-    const result = await runDiscoveryCycle(targetPerRun, hourlyKey());
+    const result = await runner.runOnce();
     console.log(JSON.stringify({ event: "cycle_complete", durationMs: Date.now() - startedAt, ...result }));
   } catch (error) {
     console.error(JSON.stringify({ event: "cycle_failed", durationMs: Date.now() - startedAt, error: String(error) }));
-  } finally {
-    running = false;
   }
 }
 
-console.log(JSON.stringify({ event: "worker_started", intervalMinutes, targetPerRun }));
+console.log(JSON.stringify({ event: "worker_started", ...config }));
 void runOnce();
 setInterval(() => void runOnce(), intervalMs);

@@ -59,9 +59,19 @@
 
 ## Corrected deliverable: GitHub-ready worker service
 
-- [ ] Make the worker service the primary deliverable instead of presenting the dashboard as the main product.
-- [ ] Add a standalone worker runtime entrypoint for hourly cloud execution.
-- [ ] Add a deployment contract for a persistent cloud runtime and environment configuration.
-- [ ] Add a private GitHub repository export/push for the corrected server code.
-- [ ] Document clearly that GitHub stores the code while a cloud runtime executes it continuously.
-- [ ] Validate the worker entrypoint and deployment files independently from the optional dashboard.
+- [x] Make the worker service the primary deliverable instead of presenting the dashboard as the main product.
+- [x] Add a standalone worker runtime entrypoint for hourly cloud execution.
+- [x] Add a deployment contract for a persistent cloud runtime and environment configuration.
+- [x] Add a private GitHub repository export/push for the corrected server code.
+- [x] Document clearly that GitHub stores the code while a cloud runtime executes it continuously.
+- [x] Validate the worker entrypoint and deployment files independently from the optional dashboard.
+
+## Worker-first delivery corrections
+
+- [x] Restructure the repository documentation and entrypoints so the worker is clearly primary and the dashboard secondary.
+- [x] Add a concrete persistent-worker deployment manifest with command and required environment variables.
+- [x] Add a direct worker startup smoke test that does not depend on the dashboard build.
+
+## Deployment manifest correction
+
+- [x] Add one concrete persistent service manifest that includes the worker command and required runtime variables together.
