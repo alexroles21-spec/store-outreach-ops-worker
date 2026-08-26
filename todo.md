@@ -167,3 +167,7 @@
 - [x] Label DB migration and external-database validation history as superseded by repository storage instead of claiming success.
 - [x] Make Common Crawl discovery resilient to transient 504/5xx responses in the GitHub Actions worker and verify a subsequent non-dry run. (Verified in the successful follow-up run.)
 - [x] Replace the top-level await in the GitHub worker entrypoint with a process-safe async main so GitHub Actions can complete each hourly cycle.
+- [ ] Expand GitHub discovery fallback across additional permitted public Common Crawl query patterns so the cycle continues toward 84 qualified stores when one index query returns too few candidates.
+- [x] Keep automatic outreach preparation in reports and manual review; do not add CAPTCHA bypass or unconfigured bulk email sending.
+- [x] Add a ten-second minimum delay between individually confirmed contact-form sends, with CAPTCHA and robots exclusions. (Not enabled for unattended bulk submission; retained only as a pacing rule for compliant provider workflows.)
+- [ ] If the user provides a compliant opt-in campaign provider, add provider-level sending with unsubscribe handling, rate limits, and audit logs; do not submit arbitrary public contact forms automatically.

@@ -30,6 +30,15 @@ describe("outreach utilities", () => {
     expect(result).toEqual(["https://shop.ca/"]);
   });
 
+  it("continues after a partial page until the geo target is reached", async () => {
+    const pages = [
+      { urls: ["https://first.com/"], exhausted: false },
+      { urls: ["https://second.ca/"], exhausted: false },
+    ];
+    const result = await collectGeoCandidates(2, async page => pages[page] ?? { urls: [], exhausted: true });
+    expect(result).toEqual(["https://first.com/", "https://second.ca/"]);
+  });
+
   it("classifies a live e-commerce page as qualified and records timing", async () => {
     vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input);

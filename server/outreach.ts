@@ -207,7 +207,8 @@ export function dedupeCandidates(urls: string[]) {
 }
 
 export async function discoverPublicStoreUrls(target: number, page = 0) {
-  const requestedLimit = Math.max(target * 8, 160);
+  // Keep each request bounded so GitHub runners can paginate instead of treating a partial response as exhaustion.
+  const requestedLimit = Math.max(target * 2, 200);
   const collectionsResponse = await fetchText(COMMON_CRAWL_COLLECTIONS, 7000);
   if (!collectionsResponse.response.ok) throw new Error(`Common Crawl collections failed with ${collectionsResponse.response.status}`);
   const collections = JSON.parse(collectionsResponse.text) as Array<{ id: string }>;
@@ -223,7 +224,8 @@ export async function discoverPublicStoreUrls(target: number, page = 0) {
   const indexResponse = await fetchText(query.toString(), 12000);
   if (!indexResponse.response.ok) throw new Error(`Common Crawl index failed with ${indexResponse.response.status}`);
   const urls = parseCommonCrawlLines(indexResponse.text, target);
-  return { urls, exhausted: urls.length < requestedLimit };
+  // Common Crawl may cap a successful response below the requested limit. An empty page is the only reliable exhaustion signal here.
+  return { urls, exhausted: urls.length === 0 };
 }
 
 export async function collectGeoCandidates(target: number, loadPage: (page: number) => Promise<{ urls: string[]; exhausted: boolean }>) {
