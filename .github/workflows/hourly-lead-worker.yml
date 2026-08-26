@@ -45,5 +45,7 @@ jobs:
           cache: pnpm
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+      - name: Apply database migrations
+        run: pnpm drizzle-kit migrate
       - name: Run one worker cycle
         run: pnpm worker

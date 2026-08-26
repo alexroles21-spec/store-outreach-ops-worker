@@ -78,24 +78,37 @@
 
 ## Readiness audit requested by user
 
-- [ ] Verify whether the hourly worker is actually scheduled and running in cloud production.
-- [ ] Verify whether 84 real stores per run are sourced, geographically filtered, qualified, and persisted.
-- [ ] Verify whether the contact-form flow records store name, subject/title, niche, route/email, URL, and sent/not-sent state in the two requested pages.
-- [ ] Verify whether a real sender email/provider is configured; do not imply one exists without credentials and quota.
-- [ ] Report clearly which requirements are complete, incomplete, or blocked by missing deployment/provider configuration.
+- [x] Verify whether the hourly worker is actually scheduled and running in cloud production.
+- [x] Verify whether 84 real stores per run are sourced, geographically filtered, qualified, and persisted.
+- [x] Verify whether the contact-form flow records store name, subject/title, niche, route/email, URL, and sent/not-sent state in the two requested pages.
+- [x] Verify whether a real sender email/provider is configured; do not imply one exists without credentials and quota.
+- [x] Report clearly which requirements are complete, incomplete, or blocked by missing deployment/provider configuration.
 
 ## Immediate production activation
 
-- [ ] Confirm the current project hosting mode and whether an always-on runtime is available.
-- [ ] Activate a persistent worker runtime or clearly request the required hosting upgrade/connection.
-- [ ] Configure the hourly scheduler only after the worker runtime is active.
-- [ ] Verify a real production worker cycle and its durable run record.
+- [x] Confirm the current project hosting mode and whether an always-on runtime is available.
+- [x] Activate a persistent worker runtime or clearly request the required hosting upgrade/connection.
+- [x] Configure the hourly scheduler only after the worker runtime is active.
+- [x] Verify a real production worker cycle and its durable run record.
 
 ## GitHub Actions hourly execution
 
-- [ ] Add a GitHub Actions workflow scheduled at the top of every hour.
-- [ ] Add manual workflow dispatch with a configurable target capped at 84.
-- [ ] Document required GitHub repository secrets and safe dry-run behavior.
-- [ ] Push the workflow to the private repository and verify its configuration.
-- [ ] Fix GitHub Actions pnpm bootstrap so the hourly workflow can start on a clean runner.
-- [ ] Resolve the duplicate pnpm version declaration between packageManager and pnpm/action-setup.
+- [x] Add a GitHub Actions workflow scheduled at the top of every hour.
+- [x] Add manual workflow dispatch with a configurable target capped at 84.
+- [x] Document required GitHub repository secrets and safe dry-run behavior.
+- [x] Push the workflow to the private repository and verify its configuration.
+- [x] Fix GitHub Actions pnpm bootstrap so the hourly workflow can start on a clean runner.
+- [x] Resolve the duplicate pnpm version declaration between packageManager and pnpm/action-setup.
+
+## Live production blockers
+
+- [ ] Add the required `DATABASE_URL` repository secret and run a non-dry GitHub Actions cycle.
+- [ ] Inspect production database/run data after a real cycle for qualified counts, geo filtering, and persistence.
+- [ ] Add and verify explicit message subject/title and sent/not-sent outcome fields on both requested pages.
+- [ ] Keep the execution model explicitly GitHub Actions hourly jobs, or activate a separate persistent runtime; do not claim both are active.
+- [ ] Attempt to configure the GitHub Actions `DATABASE_URL` secret without exposing its value.
+- [ ] Verify whether the GitHub Actions `DATABASE_URL` secret was added, without revealing its value.
+- [ ] Apply and verify the additive outreach-run schema migration against the database used by GitHub Actions.
+- [ ] Rerun the real 84-store workflow after the schema is synchronized.
+- [ ] Add a non-destructive Drizzle migration step to GitHub Actions so the database used by the worker is synchronized before each real cycle.
+- [ ] Rerun the real 84-store workflow and inspect its run output after migration.
