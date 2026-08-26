@@ -56,3 +56,12 @@
 
 - [x] Stop candidate pagination only when the source explicitly reports exhaustion or the 84-target is reached.
 - [x] Test that an empty non-exhausted page is followed by a later valid page.
+
+## Corrected deliverable: GitHub-ready worker service
+
+- [ ] Make the worker service the primary deliverable instead of presenting the dashboard as the main product.
+- [ ] Add a standalone worker runtime entrypoint for hourly cloud execution.
+- [ ] Add a deployment contract for a persistent cloud runtime and environment configuration.
+- [ ] Add a private GitHub repository export/push for the corrected server code.
+- [ ] Document clearly that GitHub stores the code while a cloud runtime executes it continuously.
+- [ ] Validate the worker entrypoint and deployment files independently from the optional dashboard.

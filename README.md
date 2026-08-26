@@ -27,3 +27,9 @@ Run `pnpm check` for TypeScript validation, `pnpm test` for the Vitest suite, an
 ## Production prerequisites
 
 Use an authenticated production deployment and promote the project owner to the administrator role if needed. Configure a real sender domain and a provider only when the provider account has approved quota, authenticated DNS records, and a lawful process for commercial outreach. Keep any provider credentials in managed server secrets; never place them in client code or commit them to GitHub.
+
+## GitHub-ready worker service
+
+The primary service entrypoint is `worker/index.ts`, launched with `pnpm worker`. It starts one cycle immediately and then runs on a configurable interval while preventing overlapping cycles. Set `WORKER_INTERVAL_MINUTES=60` and `WORKER_TARGET_PER_RUN=84` in the cloud runtime. The worker reuses the verified lead pipeline and hourly idempotency key, so retries in the same hour do not create a second run record.
+
+GitHub is the source repository for this code; it is not the machine that runs a process continuously. To keep the worker alive, connect this private repository to a persistent Node runtime such as Manus Reserved Hosting or another cloud service that supports always-on processes. The existing web dashboard can remain deployed separately as the private monitoring surface. Do not use Autoscale for the standalone worker because a sleeping or request-scoped runtime cannot guarantee a continuously running interval.
