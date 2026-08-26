@@ -112,3 +112,4 @@
 - [ ] Rerun the real 84-store workflow after the schema is synchronized.
 - [ ] Add a non-destructive Drizzle migration step to GitHub Actions so the database used by the worker is synchronized before each real cycle.
 - [ ] Rerun the real 84-store workflow and inspect its run output after migration.
+- [ ] Correct the GitHub `DATABASE_URL` secret so it includes the database name required by Drizzle.

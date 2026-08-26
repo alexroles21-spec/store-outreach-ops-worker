@@ -29,6 +29,7 @@ jobs:
     timeout-minutes: 15
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      DATABASE_NAME: "AVG9nkaNzsHswcdcXYfrKU"
       WORKER_INTERVAL_MINUTES: "60"
       WORKER_TARGET_PER_RUN: ${{ inputs.target_per_run || '84' }}
       WORKER_DRY_RUN: ${{ inputs.dry_run || 'false' }}
@@ -45,6 +46,16 @@ jobs:
           cache: pnpm
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+      - name: Ensure database name is present
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const url = new URL(process.env.DATABASE_URL);
+          if (!url.pathname || url.pathname === '/') {
+            url.pathname = `/${process.env.DATABASE_NAME}`;
+            fs.appendFileSync(process.env.GITHUB_ENV, `DATABASE_URL=${url.toString()}\n`);
+          }
+          NODE
       - name: Apply database migrations
         run: pnpm drizzle-kit migrate
       - name: Run one worker cycle
