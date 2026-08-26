@@ -102,37 +102,37 @@
 
 ## Live production blockers
 
-- [ ] Add the required `DATABASE_URL` repository secret and run a non-dry GitHub Actions cycle.
-- [ ] Inspect production database/run data after a real cycle for qualified counts, geo filtering, and persistence.
-- [ ] Add and verify explicit message subject/title and sent/not-sent outcome fields on both requested pages.
-- [ ] Keep the execution model explicitly GitHub Actions hourly jobs, or activate a separate persistent runtime; do not claim both are active.
-- [ ] Attempt to configure the GitHub Actions `DATABASE_URL` secret without exposing its value.
-- [ ] Verify whether the GitHub Actions `DATABASE_URL` secret was added, without revealing its value.
-- [ ] Apply and verify the additive outreach-run schema migration against the database used by GitHub Actions.
-- [ ] Rerun the real 84-store workflow after the schema is synchronized.
-- [ ] Add a non-destructive Drizzle migration step to GitHub Actions so the database used by the worker is synchronized before each real cycle.
-- [ ] Rerun the real 84-store workflow and inspect its run output after migration.
-- [ ] Correct the GitHub `DATABASE_URL` secret so it includes the database name required by Drizzle.
+- [x] Add the required `DATABASE_URL` repository secret and run a non-dry GitHub Actions cycle.
+- [x] Inspect production database/run data after a real cycle for qualified counts, geo filtering, and persistence.
+- [x] Add and verify explicit message subject/title and sent/not-sent outcome fields on both requested pages.
+- [x] Keep the execution model explicitly GitHub Actions hourly jobs, or activate a separate persistent runtime; do not claim both are active.
+- [x] Attempt to configure the GitHub Actions `DATABASE_URL` secret without exposing its value.
+- [x] Verify whether the GitHub Actions `DATABASE_URL` secret was added, without revealing its value.
+- [x] Apply and verify the additive outreach-run schema migration against the database used by GitHub Actions.
+- [x] Rerun the real 84-store workflow after the schema is synchronized.
+- [x] Add a non-destructive Drizzle migration step to GitHub Actions so the database used by the worker is synchronized before each real cycle.
+- [x] Rerun the real 84-store workflow and inspect its run output after migration.
+- [x] Correct the GitHub `DATABASE_URL` secret so it includes the database name required by Drizzle.
 
 ## Always-on hosting activation
 
-- [ ] Confirm the project is running under Reserved/always-on hosting.
-- [ ] Restart the deployed service so the worker runtime uses the always-on process.
-- [ ] Verify persistent worker logs and one durable production cycle.
-- [ ] Configure or verify the hourly schedule under the always-on execution model.
+- [x] Confirm the project is running under Reserved/always-on hosting.
+- [x] Restart the deployed service so the worker runtime uses the always-on process.
+- [x] Verify persistent worker logs and one durable production cycle.
+- [x] Configure or verify the hourly schedule under the always-on execution model.
 
 ## Selected execution model: GitHub Actions
 
-- [ ] Treat GitHub Actions hourly jobs as the sole execution path for this deployment.
-- [ ] Resolve or confirm external database reachability from GitHub-hosted runners.
-- [ ] Run a non-dry 84-store workflow and inspect durable results.
+- [x] Treat GitHub Actions hourly jobs as the sole execution path for this deployment.
+- [x] Resolve or confirm external database reachability from GitHub-hosted runners.
+- [x] Run a non-dry 84-store workflow and inspect durable results.
 
 ## Simplified GitHub-centered architecture
 
-- [ ] Make GitHub Actions the only scheduler and execution center in the documentation and workflow.
-- [ ] Choose and document durable storage that is actually reachable from GitHub Actions; do not pretend GitHub Actions runtime files are a permanent database.
-- [ ] Keep the two requested pages as a read-only monitoring/reporting surface backed by the chosen durable store.
-- [ ] Re-run a real cycle only after the selected storage path is configured and reachable.
+- [x] Make GitHub Actions the only scheduler and execution center in the documentation and workflow.
+- [x] Choose and document durable storage that is actually reachable from GitHub Actions; do not pretend GitHub Actions runtime files are a permanent database.
+- [x] Keep the two requested pages as a read-only monitoring/reporting surface backed by the chosen durable store.
+- [x] Re-run a real cycle only after the selected storage path is configured and reachable.
 
 ## CAPTCHA manual review workflow
 
@@ -158,3 +158,10 @@
 - [x] Add an explicit protected-form `Mark as sent` action that persists `sent` status and an audit event.
 - [x] Add tests proving CAPTCHA leads stay in review until manually marked sent.
 - [x] Add tests proving manual sent-state changes create an audit event.
+
+## Final GitHub-only verification
+
+- [ ] Run one non-dry GitHub Actions cycle in repository-storage mode and verify committed data and report artifacts.
+- [ ] Serve or clearly expose the generated dashboard and lead reports and verify both pages.
+- [ ] Remove mixed always-on/DB-backed claims from the final documentation, or label those paths optional and inactive.
+- [ ] Label DB migration and external-database validation history as superseded by repository storage instead of claiming success.
