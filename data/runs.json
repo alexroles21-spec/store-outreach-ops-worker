@@ -1,0 +1,12 @@
+[
+  {
+    "startedAt": "2026-08-26T20:35:51.429Z",
+    "finishedAt": "2026-08-26T20:36:04.625Z",
+    "target": 84,
+    "discovered": 43,
+    "qualified": 38,
+    "failures": 5,
+    "protectedForms": 5,
+    "queued": 9
+  }
+]
