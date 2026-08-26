@@ -207,31 +207,28 @@ export function dedupeCandidates(urls: string[]) {
 }
 
 export async function discoverPublicStoreUrls(target: number, page = 0) {
-  // Shard hostname patterns so one broad Common Crawl request cannot time out the GitHub job.
-  const shards = ["*.myshopify.com/*", ..."abcdefghijklmnopqrstuvwxyz".split("").map(letter => `${letter}*.myshopify.com/*`)];
-  const pattern = shards[page];
-  if (!pattern) return { urls: [], exhausted: true };
-  const requestedLimit = Math.max(target * 2, 200);
+  // Use the broad Common Crawl pattern with page offsets. Invalid hostname-prefix wildcards return 404.
+  const requestedLimit = Math.min(Math.max(target * 2, 200), 1000);
   const collectionsResponse = await fetchText(COMMON_CRAWL_COLLECTIONS, 7000);
   if (!collectionsResponse.response.ok) throw new Error(`Common Crawl collections failed with ${collectionsResponse.response.status}`);
   const collections = JSON.parse(collectionsResponse.text) as Array<{ id: string }>;
   const latest = collections[0]?.id;
   if (!latest) throw new Error("Common Crawl returned no collections");
   const query = new URL(`https://index.commoncrawl.org/${latest}-index`);
-  query.searchParams.set("url", pattern);
+  query.searchParams.set("url", "*.myshopify.com/*");
   query.searchParams.set("output", "json");
   query.searchParams.set("filter", "status:200");
   query.searchParams.set("collapse", "urlkey");
+  query.searchParams.set("page", String(page));
   query.searchParams.set("limit", String(requestedLimit));
   try {
     const indexResponse = await fetchText(query.toString(), 12000);
     if (!indexResponse.response.ok) throw new Error(`Common Crawl index failed with ${indexResponse.response.status}`);
     const urls = parseCommonCrawlLines(indexResponse.text, target);
-    return { urls, exhausted: page >= shards.length - 1 };
+    return { urls, exhausted: urls.length === 0 };
   } catch (error) {
-    // A failed shard is skipped so later shards can still contribute real candidates.
-    console.warn(JSON.stringify({ event: "discovery_shard_skipped", pattern, error: String(error) }));
-    return { urls: [], exhausted: page >= shards.length - 1 };
+    console.warn(JSON.stringify({ event: "discovery_page_skipped", page, error: String(error) }));
+    return { urls: [], exhausted: true };
   }
 }
 
