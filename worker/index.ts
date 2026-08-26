@@ -14,10 +14,18 @@ async function runOnce() {
   }
 }
 
-console.log(JSON.stringify({ event: "worker_started", ...config }));
-if (config.once) {
-  await runOnce();
-} else {
+async function main() {
+  console.log(JSON.stringify({ event: "worker_started", ...config }));
+  if (config.once) {
+    await runOnce();
+    return;
+  }
+
   void runOnce();
   setInterval(() => void runOnce(), config.intervalMinutes * 60 * 1000);
 }
+
+void main().catch(error => {
+  console.error(JSON.stringify({ event: "worker_boot_failed", error: String(error) }));
+  process.exitCode = 1;
+});
