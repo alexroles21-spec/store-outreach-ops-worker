@@ -11,6 +11,14 @@ const COMMON_CRAWL_COLLECTIONS = "https://index.commoncrawl.org/collinfo.json";
 const USER_AGENT = "StoreOutreachResearch/1.0 (+public-lead-review)";
 const REGIONS = ["US", "CA", "UK", "EU", "AU"] as const;
 const NICHE_RULES: Array<[string, string[]]> = [
+  ["Electronics & gadgets", ["electronics", "electronic", "gadget", "smart device", "wearable tech", "bluetooth", "wireless device", "gaming accessory"]],
+  ["Phone & tech accessories", ["tech accessory", "phone case", "phone mount", "screen protector", "charger", "cable", "tech pouch"]],
+  ["Women’s fashion", ["women's fashion", "womens fashion", "women clothing", "women's clothing", "dress", "skirts", "leggings", "women apparel"]],
+  ["Men’s fashion", ["men's fashion", "mens fashion", "men clothing", "men's clothing", "shirts", "menswear", "men apparel"]],
+  ["Fashion & lifestyle accessories", ["apparel", "clothing", "fashion", "shoe", "jewelry", "sunglasses", "watch", "wallet", "handbag", "accessories"]],
+  ["Sports & outdoors", ["sports", "outdoor", "camping", "hiking", "cycling", "running", "sportswear"]],
+  ["Kids & baby", ["baby", "infant", "kids", "children", "toys", "stroller"]],
+  ["Food & beverage", ["coffee", "tea", "snack", "food", "beverage", "kitchenware"]],
   ["Skincare & anti-aging", ["skincare", "skin care", "anti-aging", "antiaging", "serum", "moisturizer", "retinol"]],
   ["Hair care", ["hair growth", "hair oil", "haircare", "hair care", "styler", "hair brush", "brushes"]],
   ["Oral care", ["teeth whitening", "tooth whitening", "oral care", "toothbrush", "dental"]],
@@ -25,10 +33,11 @@ const NICHE_RULES: Array<[string, string[]]> = [
   ["Fitness & yoga", ["fitness", "gym", "workout", "resistance band", "yoga", "activewear"]],
   ["Shapewear", ["shapewear", "compression wear", "waist trainer"]],
   ["Recovery & massage", ["massage", "foam roller", "recovery", "massage gun"]],
-  ["Phone & tech accessories", ["gadget", "tech", "electronics", "device", "phone case", "phone mount", "tech pouch"]],
   ["Travel organizers", ["travel organizer", "luggage organizer", "packing cube", "travel pouch"]],
-  ["Jewelry & lifestyle accessories", ["apparel", "clothing", "fashion", "shoe", "jewelry", "sunglasses", "watch", "wallet", "handbag"]],
 ];
+
+const ART_ONLY_MARKERS = ["painting", "paintings", "canvas art", "wall art", "art print", "art prints", "fine art", "gallery", "artwork"];
+const PHYSICAL_PRODUCT_MARKERS = NICHE_RULES.flatMap(([, words]) => words);
 
 export const PRIORITY_NICHES = NICHE_RULES.map(([niche]) => niche);
 
@@ -94,6 +103,8 @@ function extractTagValue(html: string, tag: string, attribute: string, value: st
 
 function inferNiche(text: string, host: string) {
   const haystack = `${text} ${host}`.toLowerCase();
+  const artworkOnly = ART_ONLY_MARKERS.some(marker => haystack.includes(marker)) && !PHYSICAL_PRODUCT_MARKERS.some(marker => haystack.includes(marker));
+  if (artworkOnly) return "General e-commerce";
   for (const [niche, words] of NICHE_RULES) {
     if (words.some(word => haystack.includes(word))) return niche;
   }
@@ -343,19 +354,20 @@ export async function qualifyStore(storeUrl: string): Promise<QualificationResul
     const siteName = homepage.text.match(/property=["']og:site_name["'][^>]+content=["']([^"']+)["']/i)?.[1] || homepage.text.match(/name=["']application-name["'][^>]+content=["']([^"']+)["']/i)?.[1];
     const storeName = (title && title.length > 2 ? title : undefined) || ogTitle || siteName || normalizedHost.split(".")[0].replace(/[-_]/g, " ");
     const region = inferRegion(requestedUrl, body);
+    const niche = inferNiche(body, normalizedHost);
     const ecomSignal = /shopify|myshopify|add to cart|shopping cart|products?\b|checkout|application\/ld\+json/i.test(homepage.text);
     const english = isEnglishStorefront(homepage.text);
     const locked = detectLockedStore(homepage.text);
     const evidence = `HTTP ${homepage.response.status}; final URL ${homepage.response.url}; e-commerce signal ${ecomSignal ? "detected" : "not detected"}; storefront lock ${locked ? "detected" : "not detected"}; checked ${new Date().toISOString()}`;
-    if (locked || !homepage.response.ok || !ecomSignal || !english) {
+    if (locked || !homepage.response.ok || !ecomSignal || !english || !isPriorityNiche(niche)) {
       return {
         storeUrl: homepage.response.url || requestedUrl,
         normalizedHost,
         storeName,
-        niche: inferNiche(body, normalizedHost),
+        niche,
         ...region,
-        verificationStatus: locked ? "inactive" : !english ? "failed" : homepage.response.ok ? "failed" : "inactive",
-        verificationEvidence: `${evidence}; response time ${Date.now() - startedAt}ms${locked ? "; storefront is password-locked" : !english ? "; storefront language is not English" : ""}`,
+        verificationStatus: locked || !homepage.response.ok ? "inactive" : !english || !isPriorityNiche(niche) ? "failed" : "failed",
+        verificationEvidence: `${evidence}; response time ${Date.now() - startedAt}ms${locked ? "; storefront is password-locked" : !english ? "; storefront language is not English" : !isPriorityNiche(niche) ? "; no requested physical-product niche match" : ""}`,
         contactRouteType: "none",
         contactFormProtected: false,
         responseTimeMs: Date.now() - startedAt,
@@ -390,7 +402,7 @@ export async function qualifyStore(storeUrl: string): Promise<QualificationResul
       storeUrl: homepage.response.url || requestedUrl,
       normalizedHost,
       storeName,
-      niche: inferNiche(body, normalizedHost),
+      niche,
       ...region,
       verificationStatus: "qualified",
       verificationEvidence: `${evidence}; contact route ${contactRouteType}${protectionReason ? `; protected by ${protectionReason}` : ""}`,

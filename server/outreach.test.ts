@@ -21,6 +21,15 @@ describe("outreach utilities", () => {
     expect(detectLockedStore('<html><title>Shopify Store</title><body>Products and Add to cart</body></html>')).toBe(false);
   });
 
+  it("keeps artwork-only stores out of the priority taxonomy", async () => {
+    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
+      if (String(input).endsWith("/robots.txt")) return new Response("", { status: 404 });
+      return new Response('<html lang="en"><title>Fine Art Gallery</title><body>Shopify canvas art paintings gallery</body></html>', { status: 200 });
+    }));
+    const result = await qualifyStore("https://gallery.myshopify.com/");
+    expect(result.verificationStatus).toBe("failed");
+  });
+
   it("accepts English storefront signals and rejects clear non-English signals", () => {
     expect(isEnglishStorefront('<html lang="en"><body>Add to cart</body></html>')).toBe(true);
     expect(isEnglishStorefront('<html lang="de"><body>Warenkorb und Versand</body></html>')).toBe(false);
@@ -55,7 +64,7 @@ describe("outreach utilities", () => {
       const url = String(input);
       if (url.endsWith("/robots.txt")) return new Response("", { status: 404 });
       if (url.endsWith("/contact")) return new Response('<html lang="en"><form><textarea name="message"></textarea></form></html>', { status: 200 });
-      return new Response('<html lang="en"><title>Contactable Goods</title><body>Shopify products Add to cart <a href="/contact">Contact us</a><a href="mailto:hello@contactable.test">Email</a></body></html>', { status: 200 });
+      return new Response('<html lang="en"><title>Contactable Electronics Goods</title><body>Shopify electronics products Add to cart <a href="/contact">Contact us</a><a href="mailto:hello@contactable.test">Email</a></body></html>', { status: 200 });
     }));
     const result = await qualifyStore("https://contactable.myshopify.com/");
     expect(result.verificationStatus).toBe("qualified");
@@ -117,8 +126,10 @@ describe("outreach utilities", () => {
     expect(message.storeUrl).toBe("https://northstar.example");
   });
 
-  it("recognizes only the requested physical-product niche labels as priority", () => {
-    expect(isPriorityNiche("Skincare & anti-aging")).toBe(true);
+  it("recognizes broadened youth physical-product labels as priority", () => {
+    expect(isPriorityNiche("Electronics & gadgets")).toBe(true);
+    expect(isPriorityNiche("Women’s fashion")).toBe(true);
+    expect(isPriorityNiche("Men’s fashion")).toBe(true);
     expect(isPriorityNiche("Pet supplies")).toBe(true);
     expect(isPriorityNiche("General e-commerce")).toBe(false);
   });
