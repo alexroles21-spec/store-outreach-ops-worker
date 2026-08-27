@@ -191,4 +191,6 @@
 
 - [x] Diagnose and fix the external report URL returning HTTP 400, then verify the two external report pages resolve directly from the published worker output. (The missing files are now generated and verified in GitHub after run 33049161529: `stores.html` and `contact-review.html`; private-repository links require GitHub authentication.)
 - [x] Publish the two report HTML files as rendered external pages so mobile users do not see GitHub source code. (GitHub Pages workflow succeeded; `stores.html` and `contact-review.html` both return HTTP 200 as rendered HTML.)
+- [x] Prioritize the requested physical-product niches and label region/niche matches for US, Canada, Australia, UK, and Europe without changing the worker’s safety or deduplication rules. (Added detailed niche taxonomy and excluded `General e-commerce` from qualified target counting; 22 tests, typecheck, and build pass.)
+
 

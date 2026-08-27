@@ -11,13 +11,30 @@ const COMMON_CRAWL_COLLECTIONS = "https://index.commoncrawl.org/collinfo.json";
 const USER_AGENT = "StoreOutreachResearch/1.0 (+public-lead-review)";
 const REGIONS = ["US", "CA", "EU", "AU"] as const;
 const NICHE_RULES: Array<[string, string[]]> = [
-  ["Beauty", ["beauty", "skincare", "cosmetic", "makeup", "hair"]],
-  ["Fitness", ["fitness", "gym", "workout", "supplement", "yoga"]],
-  ["Pets", ["pet", "dog", "cat", "animal"]],
-  ["Home", ["home", "decor", "furniture", "kitchen", "living"]],
-  ["Apparel", ["apparel", "clothing", "fashion", "shoe", "jewelry"]],
-  ["Gadgets", ["gadget", "tech", "electronics", "device"]],
+  ["Skincare & anti-aging", ["skincare", "skin care", "anti-aging", "antiaging", "serum", "moisturizer", "retinol"]],
+  ["Hair care", ["hair growth", "hair oil", "haircare", "hair care", "styler", "hair brush", "brushes"]],
+  ["Oral care", ["teeth whitening", "tooth whitening", "oral care", "toothbrush", "dental"]],
+  ["Supplements & vitamins", ["supplement", "vitamin", "probiotic", "collagen", "protein powder"]],
+  ["Makeup & cosmetics", ["beauty", "cosmetic", "cosmetics", "makeup", "foundation", "lipstick"]],
+  ["Nail & eyelash care", ["nail", "eyelash", "lash", "manicure", "pedicure"]],
+  ["Hair removal", ["hair removal", "epilator", "waxing", "laser hair"]],
+  ["Smart home & kitchen", ["smart kitchen", "kitchen", "organizer", "storage", "home gadget"]],
+  ["Cleaning tools", ["cleaning", "mop", "scrub", "vacuum", "laundry"]],
+  ["Home decor & lighting", ["home", "decor", "furniture", "living", "led light", "lighting"]],
+  ["Pet supplies", ["pet", "dog", "cat", "animal", "pet bed", "pet toy"]],
+  ["Fitness & yoga", ["fitness", "gym", "workout", "resistance band", "yoga", "activewear"]],
+  ["Shapewear", ["shapewear", "compression wear", "waist trainer"]],
+  ["Recovery & massage", ["massage", "foam roller", "recovery", "massage gun"]],
+  ["Phone & tech accessories", ["gadget", "tech", "electronics", "device", "phone case", "phone mount", "tech pouch"]],
+  ["Travel organizers", ["travel organizer", "luggage organizer", "packing cube", "travel pouch"]],
+  ["Jewelry & lifestyle accessories", ["apparel", "clothing", "fashion", "shoe", "jewelry", "sunglasses", "watch", "wallet", "handbag"]],
 ];
+
+export const PRIORITY_NICHES = NICHE_RULES.map(([niche]) => niche);
+
+export function isPriorityNiche(niche: string) {
+  return PRIORITY_NICHES.includes(niche);
+}
 
 export type ContactRouteType = "email" | "contact_form" | "none" | "unknown";
 
@@ -415,6 +432,10 @@ export async function runDiscoveryCycle(targetCount = 84, idempotencyKey?: strin
         const existing = await getLeadByHost(result.normalizedHost);
         if (existing) {
           await addLeadEvent({ leadId: existing.id, runId, eventType: "duplicate", outcome: "skipped", detail: "Normalized hostname already exists" });
+          continue;
+        }
+        if (result.verificationStatus === "qualified" && !isPriorityNiche(result.niche)) {
+          failures += 1;
           continue;
         }
         if (result.verificationStatus === "qualified") qualified += 1;

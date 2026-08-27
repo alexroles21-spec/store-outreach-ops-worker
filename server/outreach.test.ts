@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { buildHourlyIdempotencyKey } from "./scheduled";
-import { buildManualReviewDraft, collectGeoCandidates, dedupeCandidates, detectProtectedForm, getContactDisposition, normalizeHost, personalizeMessage, qualifyStore } from "./outreach";
+import { buildManualReviewDraft, collectGeoCandidates, dedupeCandidates, detectProtectedForm, getContactDisposition, isPriorityNiche, normalizeHost, personalizeMessage, qualifyStore } from "./outreach";
 
 describe("outreach utilities", () => {
   afterEach(() => vi.unstubAllGlobals());
@@ -80,6 +80,12 @@ describe("outreach utilities", () => {
     expect(message.body).not.toContain("[niche]");
     expect(message.senderEmail).toBe("Alex.roles21@gmail.com");
     expect(message.storeUrl).toBe("https://northstar.example");
+  });
+
+  it("recognizes only the requested physical-product niche labels as priority", () => {
+    expect(isPriorityNiche("Skincare & anti-aging")).toBe(true);
+    expect(isPriorityNiche("Pet supplies")).toBe(true);
+    expect(isPriorityNiche("General e-commerce")).toBe(false);
   });
 
   it("routes CAPTCHA forms to review and open email routes to queue", () => {
