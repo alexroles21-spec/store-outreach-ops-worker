@@ -1,0 +1,28 @@
+name: Mark review lead sent
+
+on:
+  workflow_dispatch:
+    inputs:
+      normalized_host:
+        description: "Normalized host from review.html"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  mark-sent:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Mark lead sent in repository data
+        run: node scripts/mark-repo-lead-sent.mjs "${{ inputs.normalized_host }}"
+      - name: Commit durable review state
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/leads.json
+          git diff --cached --quiet || git commit -m "Mark review lead sent"
+          git push

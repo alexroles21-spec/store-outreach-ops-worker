@@ -63,7 +63,7 @@ export const appRouter = router({
       .query(({ input }) => personalizeMessage(input.storeName, input.niche, input.storeUrl)),
   }),
   automation: router({
-    settings: adminProcedure.query(({ ctx }) => getAutomationSettings(ctx.user.id)),
+    settings: adminProcedure.query(async ({ ctx }) => (await getAutomationSettings(ctx.user.id)) ?? { id: 0, ownerId: ctx.user.id, targetPerRun: 84, intervalMinutes: 60, enabled: false, scheduleCronTaskUid: null, lastRunAt: null, createdAt: new Date(), updatedAt: new Date() }),
     runNow: adminProcedure.mutation(async ({ ctx }) => {
       const settings = await getAutomationSettings(ctx.user.id);
       return runDiscoveryCycle(settings?.targetPerRun ?? 84);

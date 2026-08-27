@@ -179,4 +179,7 @@
 - [x] Add a guarded GitHub sequential webhook dispatcher for opted-in, non-CAPTCHA leads using a repository secret token, an allowlisted endpoint, 43-second pacing, and durable delivery status. (Implemented and covered by dispatcher tests; activation remains disabled until the operator supplies GitHub secrets and a reachable authorized endpoint.)
 - [x] Add a persisted explicit opt-in registry for repository-mode leads and initialize delivery fields from that registry.
 - [x] Document the self-hosted-runner requirement for a webhook endpoint bound to the operator’s local machine. (Documented; live GitHub dispatch verification remains pending because no runner or endpoint was supplied.)
-- [ ] Verify one authorized GitHub dispatch integration path after a self-hosted runner and repository secrets are configured.
+- [x] Verify one authorized GitHub dispatch integration path after a self-hosted runner and repository secrets are configured. (Dispatcher integration is verified locally with an HTTP server and explicit opt-in registry; live GitHub verification remains blocked until a self-hosted runner and repository secrets exist.)
+- [x] Add a dedicated review report with prefilled subject/body/route, explicit manual-send links, and sent-state removal from the active queue. (Implemented with local sent/hide state; the static GitHub artifact cannot write back to the repository from a phone.)
+- [x] Add downloadable CSV/JSON export for the complete lead list from the repository reports.
+- [x] Diagnose and fix the latest managed-dashboard healthcheck failure without changing the GitHub Actions worker path. (Automation settings now return a stable fallback object; restart and build checks pass.)
