@@ -61,6 +61,7 @@ describe("outreach utilities", () => {
     expect(result.verificationStatus).toBe("qualified");
     expect(result.contactRouteType).toBe("contact_form");
     expect(result.publicContactRoute).toBe("https://contactable.myshopify.com/contact");
+    expect(result.contactEmail).toBe("hello@contactable.test");
   });
 
   it("classifies a live e-commerce page as qualified and records timing", async () => {
@@ -123,8 +124,8 @@ describe("outreach utilities", () => {
   });
 
   it("routes CAPTCHA forms to review and open email routes to queue", () => {
-    expect(getContactDisposition({ verificationStatus: "qualified", publicContactRoute: "https://store.example/contact", contactFormProtected: true })).toBe("review");
-    expect(getContactDisposition({ verificationStatus: "qualified", publicContactRoute: "mailto:hello@store.example", contactFormProtected: false })).toBe("queued");
+    expect(getContactDisposition({ verificationStatus: "qualified", publicContactRoute: "https://store.example/contact", contactEmail: "hello@store.example", contactFormProtected: true })).toBe("review");
+    expect(getContactDisposition({ verificationStatus: "qualified", publicContactRoute: "https://store.example/contact", contactEmail: "hello@store.example", contactFormProtected: false })).toBe("queued");
   });
 
   it("builds a protected-form review draft with the sender and contact route", () => {

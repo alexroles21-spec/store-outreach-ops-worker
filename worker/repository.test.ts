@@ -53,6 +53,7 @@ describe("repository dispatcher integration", () => {
       personalizeMessage: vi.fn(() => ({ senderEmail: "sender@example.test", subject: "Subject", body: "Body" })),
       isPriorityNiche: vi.fn((niche: string) => niche !== "General e-commerce"),
       isUsableEmail: vi.fn((email?: string) => Boolean(email && !email.endsWith(".png"))),
+      hasBrowserContactPage: vi.fn((route?: string) => /^https?:\/\//i.test(route ?? "")),
     }));
     const { runRepositoryCycle } = await import("./repository");
     const run = await runRepositoryCycle(1);
@@ -80,7 +81,7 @@ describe("repository dispatcher integration", () => {
     expect(review).not.toContain("Sent Store");
   });
 
-  it("keeps email-only records visible without a mailto Contact action", async () => {
+  it("excludes email-only records from the Contact queue", async () => {
     const dir = mkdtempSync(join(tmpdir(), "repo-email-only-"));
     process.chdir(dir);
     mkdirSync(join(dir, "data"), { recursive: true });
@@ -89,8 +90,8 @@ describe("repository dispatcher integration", () => {
     renderPages([emailOnly as never], []);
     const review = readFileSync(join(dir, "data", "contact-review.html"), "utf8");
     rmSync(dir, { recursive: true, force: true });
-    expect(review).toContain("Email Only Store");
-    expect(review).toContain("Email-only — opens your mail app");
+    expect(review).not.toContain("Email Only Store");
+    expect(review).not.toContain("Open email");
     expect(review).not.toContain('class="send" href="mailto:');
   });
 
