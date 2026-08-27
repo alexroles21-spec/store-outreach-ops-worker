@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { buildHourlyIdempotencyKey } from "./scheduled";
-import { buildManualReviewDraft, collectGeoCandidates, dedupeCandidates, detectLockedStore, detectProtectedForm, getContactDisposition, isPriorityNiche, normalizeHost, personalizeMessage, qualifyStore } from "./outreach";
+import { buildManualReviewDraft, collectGeoCandidates, dedupeCandidates, detectLockedStore, detectProtectedForm, getContactDisposition, isEnglishStorefront, isPriorityNiche, normalizeHost, personalizeMessage, qualifyStore } from "./outreach";
 
 describe("outreach utilities", () => {
   afterEach(() => vi.unstubAllGlobals());
@@ -19,6 +19,12 @@ describe("outreach utilities", () => {
   it("marks password-locked storefronts as inaccessible", () => {
     expect(detectLockedStore('<html><title>Opening soon</title><body>Shopify store is password protected <input type="password" /></body></html>')).toBe(true);
     expect(detectLockedStore('<html><title>Shopify Store</title><body>Products and Add to cart</body></html>')).toBe(false);
+  });
+
+  it("accepts English storefront signals and rejects clear non-English signals", () => {
+    expect(isEnglishStorefront('<html lang="en"><body>Add to cart</body></html>')).toBe(true);
+    expect(isEnglishStorefront('<html lang="de"><body>Warenkorb und Versand</body></html>')).toBe(false);
+    expect(isEnglishStorefront('<body>Panier et livraison</body>')).toBe(false);
   });
 
   it("marks common CAPTCHA signals as review-only protection", () => {
@@ -42,6 +48,19 @@ describe("outreach utilities", () => {
     ];
     const result = await collectGeoCandidates(2, async page => pages[page] ?? { urls: [], exhausted: true });
     expect(result).toEqual(["https://first.com/", "https://second.ca/"]);
+  });
+
+  it("prefers a real Contact form route over a homepage mailto link", async () => {
+    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.endsWith("/robots.txt")) return new Response("", { status: 404 });
+      if (url.endsWith("/contact")) return new Response('<html lang="en"><form><textarea name="message"></textarea></form></html>', { status: 200 });
+      return new Response('<html lang="en"><title>Contactable Goods</title><body>Shopify products Add to cart <a href="/contact">Contact us</a><a href="mailto:hello@contactable.test">Email</a></body></html>', { status: 200 });
+    }));
+    const result = await qualifyStore("https://contactable.myshopify.com/");
+    expect(result.verificationStatus).toBe("qualified");
+    expect(result.contactRouteType).toBe("contact_form");
+    expect(result.publicContactRoute).toBe("https://contactable.myshopify.com/contact");
   });
 
   it("classifies a live e-commerce page as qualified and records timing", async () => {
