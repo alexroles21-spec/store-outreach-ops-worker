@@ -40,6 +40,7 @@ describe("repository dispatcher integration", () => {
       discoverPublicStoreUrls: vi.fn(async () => ["https://example-store.test"]),
       qualifyStore: vi.fn(async () => ({ storeName: "Example Store", niche: "Electronics", storeUrl: "https://example-store.test", normalizedHost: "example-store.test", region: "US", publicContactRoute: "https://example-store.test/contact", contactEmail: "owner@example-store.test", contactFormProtected: false, verificationStatus: "qualified", verificationEvidence: "HTTP 200", responseTimeMs: 10, protectionReason: undefined })),
       personalizeMessage: vi.fn(() => ({ senderEmail: "sender@example.test", subject: "Subject", body: "Body" })),
+      isPriorityNiche: vi.fn((niche: string) => niche !== "General e-commerce"),
     }));
     const { runRepositoryCycle } = await import("./repository");
     const run = await runRepositoryCycle(1);
@@ -72,7 +73,7 @@ describe("repository dispatcher integration", () => {
     process.chdir(dir);
     mkdirSync(join(dir, "data"), { recursive: true });
     const { renderPages } = await import("./repository");
-    const ready = { id: 2, storeName: "Ready Store", niche: "Home", storeUrl: "https://ready-store.test", normalizedHost: "ready-store.test", region: "CA", publicContactRoute: "mailto:hello@ready-store.test", contactEmail: "hello@ready-store.test", contactFormProtected: false, verificationStatus: "qualified", verificationEvidence: "HTTP 200", contactStatus: "queued", deliveryStatus: "pending", discoveredAt: new Date().toISOString(), lastVerifiedAt: new Date().toISOString(), senderEmail: "sender@example.test", subject: "Subject", body: "Body" };
+    const ready = { id: 2, storeName: "Ready Store", niche: "Home decor & lighting", storeUrl: "https://ready-store.test", normalizedHost: "ready-store.test", region: "CA", publicContactRoute: "mailto:hello@ready-store.test", contactEmail: "hello@ready-store.test", contactFormProtected: false, verificationStatus: "qualified", verificationEvidence: "HTTP 200", contactStatus: "queued", deliveryStatus: "pending", discoveredAt: new Date().toISOString(), lastVerifiedAt: new Date().toISOString(), senderEmail: "sender@example.test", subject: "Subject", body: "Body" };
     renderPages([ready as never], []);
     const review = readFileSync(join(dir, "data", "contact-review.html"), "utf8");
     rmSync(dir, { recursive: true, force: true });
