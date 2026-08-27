@@ -92,5 +92,9 @@ describe("repository dispatcher integration", () => {
     expect(review).toContain("Ready Store");
     expect(review).toContain("Ready contact routes");
     expect(review).toContain("I sent it — remove from queue");
+    expect(review).toContain("Copy subject");
+    expect(review).toContain("Copy message");
+    expect(review).toContain("minmax(0,1fr)");
+    expect(review).toContain("overflow-wrap:anywhere");
   });
 });
