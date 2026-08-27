@@ -80,17 +80,31 @@ describe("repository dispatcher integration", () => {
     expect(review).not.toContain("Sent Store");
   });
 
+  it("keeps email-only records visible without a mailto Contact action", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "repo-email-only-"));
+    process.chdir(dir);
+    mkdirSync(join(dir, "data"), { recursive: true });
+    const { renderPages } = await import("./repository");
+    const emailOnly = { id: 3, storeName: "Email Only Store", niche: "Beauty", storeUrl: "https://email-only.test", normalizedHost: "email-only.test", region: "US", publicContactRoute: "mailto:hello@email-only.test", contactEmail: "hello@email-only.test", contactFormProtected: false, verificationStatus: "qualified", verificationEvidence: "HTTP 200", contactStatus: "queued", deliveryStatus: "pending", discoveredAt: new Date().toISOString(), lastVerifiedAt: new Date().toISOString(), senderEmail: "sender@example.test", subject: "Subject", body: "Body" };
+    renderPages([emailOnly as never], []);
+    const review = readFileSync(join(dir, "data", "contact-review.html"), "utf8");
+    rmSync(dir, { recursive: true, force: true });
+    expect(review).toContain("Email Only Store");
+    expect(review).toContain("Email-only — no Contact page found");
+    expect(review).not.toContain('class="send" href="mailto:');
+  });
+
   it("includes queued non-CAPTCHA leads in the contact queue", async () => {
     const dir = mkdtempSync(join(tmpdir(), "repo-ready-contact-"));
     process.chdir(dir);
     mkdirSync(join(dir, "data"), { recursive: true });
     const { renderPages } = await import("./repository");
-    const ready = { id: 2, storeName: "Ready Store", niche: "Home decor & lighting", storeUrl: "https://ready-store.test", normalizedHost: "ready-store.test", region: "CA", publicContactRoute: "mailto:hello@ready-store.test", contactEmail: "hello@ready-store.test", contactFormProtected: false, verificationStatus: "qualified", verificationEvidence: "HTTP 200", contactStatus: "queued", deliveryStatus: "pending", discoveredAt: new Date().toISOString(), lastVerifiedAt: new Date().toISOString(), senderEmail: "sender@example.test", subject: "Subject", body: "Body" };
+    const ready = { id: 2, storeName: "Ready Store", niche: "Home decor & lighting", storeUrl: "https://ready-store.test", normalizedHost: "ready-store.test", region: "CA", publicContactRoute: "https://ready-store.test/contact", contactEmail: "hello@ready-store.test", contactFormProtected: false, verificationStatus: "qualified", verificationEvidence: "HTTP 200", contactStatus: "queued", deliveryStatus: "pending", discoveredAt: new Date().toISOString(), lastVerifiedAt: new Date().toISOString(), senderEmail: "sender@example.test", subject: "Subject", body: "Body" };
     renderPages([ready as never], []);
     const review = readFileSync(join(dir, "data", "contact-review.html"), "utf8");
     rmSync(dir, { recursive: true, force: true });
     expect(review).toContain("Ready Store");
-    expect(review).toContain("Ready contact routes");
+    expect(review).toContain("Contact pages");
     expect(review).toContain("I sent it — remove from queue");
     expect(review).toContain("Copy subject");
     expect(review).toContain("Copy message");
