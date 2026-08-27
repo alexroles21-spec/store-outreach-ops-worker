@@ -90,7 +90,7 @@ describe("repository dispatcher integration", () => {
     const review = readFileSync(join(dir, "data", "contact-review.html"), "utf8");
     rmSync(dir, { recursive: true, force: true });
     expect(review).toContain("Email Only Store");
-    expect(review).toContain("Email-only — no Contact page found");
+    expect(review).toContain("Email-only — opens your mail app");
     expect(review).not.toContain('class="send" href="mailto:');
   });
 
