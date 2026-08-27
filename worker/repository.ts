@@ -74,7 +74,12 @@ export function refreshRepositoryReports() {
   renderPages(leads, runs);
 }
 
-export async function runRepositoryCycle(targetCount = 84) {
+export function hasCompletedTargetThisUtcHour(runs: Array<Record<string, unknown>>, targetCount: number, now = new Date()) {
+  const hourKey = now.toISOString().slice(0, 13);
+  return runs.some(run => typeof run.startedAt === "string" && run.startedAt.slice(0, 13) === hourKey && Number(run.qualified ?? 0) >= targetCount);
+}
+
+export async function runRepositoryCycle(targetCount = 84, now = new Date()) {
   mkdirSync(DATA_DIR, { recursive: true });
   const optInRegistry = readJson<Record<string, boolean>>(OPT_IN_FILE, {});
   const leads = readJson<RepoLead[]>(LEADS_FILE, []).map(lead => ({
@@ -82,8 +87,11 @@ export async function runRepositoryCycle(targetCount = 84) {
     optedIn: lead.optedIn === true || optInRegistry[lead.normalizedHost] === true,
   }));
   const runs = readJson<Array<Record<string, unknown>>>(RUNS_FILE, []);
+  if (hasCompletedTargetThisUtcHour(runs, targetCount, now)) {
+    return { skipped: "already_completed_this_utc_hour" as const, target: targetCount };
+  }
   const cursor = readJson<{ page: number }>(CURSOR_FILE, { page: 0 });
-  const startedAt = new Date().toISOString();
+  const startedAt = now.toISOString();
   const startPage = Math.max(0, cursor.page);
   const candidateBudget = Math.min(Math.max(targetCount * 6, targetCount), 1000);
   const urls = await collectGeoCandidates(candidateBudget, page => import("../server/outreach").then(module => module.discoverPublicStoreUrls(candidateBudget, startPage + page)));

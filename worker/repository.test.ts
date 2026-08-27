@@ -15,6 +15,17 @@ describe("repository dispatcher integration", () => {
     vi.clearAllMocks();
   });
 
+  it("runs at most one completed target batch per UTC hour", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "repo-idempotency-"));
+    process.chdir(dir);
+    mkdirSync(join(dir, "data"), { recursive: true });
+    writeFileSync(join(dir, "data", "runs.json"), JSON.stringify([{ startedAt: "2026-08-27T12:02:00.000Z", qualified: 84 }]));
+    const { hasCompletedTargetThisUtcHour } = await import("./repository");
+    expect(hasCompletedTargetThisUtcHour(JSON.parse(readFileSync(join(dir, "data", "runs.json"), "utf8")), 84, new Date("2026-08-27T12:45:00.000Z"))).toBe(true);
+    expect(hasCompletedTargetThisUtcHour([{ startedAt: "2026-08-27T12:02:00.000Z", qualified: 83 }], 84, new Date("2026-08-27T12:45:00.000Z"))).toBe(false);
+    rmSync(dir, { recursive: true, force: true });
+  });
+
   it("dispatches an opted-in queued lead and persists sent state", async () => {
     const dir = mkdtempSync(join(tmpdir(), "repo-cycle-"));
     const received: string[] = [];
