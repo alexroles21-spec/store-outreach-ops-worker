@@ -17,12 +17,23 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
       - name: Mark lead sent in repository data
         run: node scripts/mark-repo-lead-sent.mjs "${{ inputs.normalized_host }}"
+      - name: Refresh external reports
+        run: pnpm exec tsx scripts/refresh-repo-reports.ts
       - name: Commit durable review state
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/leads.json
+          git add data/leads.json data/stores.html data/contact-review.html data/leads.html data/review.html data/leads.csv
           git diff --cached --quiet || git commit -m "Mark review lead sent"
           git push

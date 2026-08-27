@@ -52,4 +52,18 @@ describe("repository dispatcher integration", () => {
     expect(leads[0].deliveryStatus).toBe("sent");
     expect(leads[0].contactStatus).toBe("sent");
   });
+
+  it("keeps sent leads in stores but removes them from the contact review report", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "repo-reports-"));
+    process.chdir(dir);
+    mkdirSync(join(dir, "data"), { recursive: true });
+    const { renderPages } = await import("./repository");
+    const base = { id: 1, storeName: "Sent Store", niche: "Beauty", storeUrl: "https://sent-store.test", normalizedHost: "sent-store.test", region: "US", publicContactRoute: "https://sent-store.test/contact", contactEmail: "hello@sent-store.test", contactFormProtected: true, protectionReason: "CAPTCHA", verificationStatus: "qualified", verificationEvidence: "HTTP 200", contactStatus: "sent", deliveryStatus: "sent", discoveredAt: new Date().toISOString(), lastVerifiedAt: new Date().toISOString(), senderEmail: "sender@example.test", subject: "Subject", body: "Body" };
+    renderPages([base as never], []);
+    const stores = readFileSync(join(dir, "data", "stores.html"), "utf8");
+    const review = readFileSync(join(dir, "data", "contact-review.html"), "utf8");
+    rmSync(dir, { recursive: true, force: true });
+    expect(stores).toContain("Sent Store");
+    expect(review).not.toContain("Sent Store");
+  });
 });

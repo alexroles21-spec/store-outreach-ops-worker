@@ -45,7 +45,7 @@ function csv(value: unknown) {
   return `"${String(value ?? "").replace(/"/g, '""')}"`;
 }
 
-function renderPages(leads: RepoLead[], runs: Array<Record<string, unknown>>) {
+export function renderPages(leads: RepoLead[], runs: Array<Record<string, unknown>>) {
   const links = `<nav><a href="dashboard.html">Run status</a> · <a href="stores.html">Stores</a> · <a href="contact-review.html">Contact review</a> · <a href="leads.csv" download>Download CSV</a> · <a href="leads.json" download>Download JSON</a></nav>`;
   const rows = leads.map(lead => `<tr><td>${esc(lead.storeName)}</td><td>${esc(lead.niche)}</td><td>${esc(lead.region)}</td><td><a href="${esc(lead.storeUrl)}" target="_blank" rel="noreferrer">Store</a></td><td>${lead.publicContactRoute ? `<a href="${esc(lead.publicContactRoute)}" target="_blank" rel="noreferrer">${esc(lead.publicContactRoute)}</a>` : "No public route"}</td><td>${esc(lead.contactStatus)}</td></tr>`).join("");
   const table = `<table><thead><tr><th>Store</th><th>Niche</th><th>Region</th><th>URL</th><th>Contact route</th><th>Status</th></tr></thead><tbody>${rows || "<tr><td colspan=6>No leads yet</td></tr>"}</tbody></table>`;
@@ -61,6 +61,12 @@ function renderPages(leads: RepoLead[], runs: Array<Record<string, unknown>>) {
   writeFileSync(join(DATA_DIR, "stores.html"), storesPage);
   writeFileSync(join(DATA_DIR, "review.html"), contactReviewPage);
   writeFileSync(join(DATA_DIR, "contact-review.html"), contactReviewPage);
+}
+
+export function refreshRepositoryReports() {
+  const leads = readJson<RepoLead[]>(LEADS_FILE, []);
+  const runs = readJson<Array<Record<string, unknown>>>(RUNS_FILE, []);
+  renderPages(leads, runs);
 }
 
 export async function runRepositoryCycle(targetCount = 84) {

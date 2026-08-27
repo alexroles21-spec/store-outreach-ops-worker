@@ -194,3 +194,4 @@
 - [x] Prioritize the requested physical-product niches and label region/niche matches for US, Canada, Australia, UK, and Europe without changing the worker’s safety or deduplication rules. (Added detailed niche taxonomy and excluded `General e-commerce` from qualified target counting; 22 tests, typecheck, and build pass.)
 
 
+- [x] Remove manually sent review leads from the send-review queue while keeping the contact directory stable and using sent state for durable no-repeat checks. (Mark-sent workflow now regenerates reports; 23 tests and typecheck pass.)
