@@ -1,6 +1,6 @@
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { collectGeoCandidates, isUsableEmail, qualifyStore, personalizeMessage } from "../server/outreach";
+import { collectGeoCandidates, hasBrowserContactPage, isUsableEmail, qualifyStore, personalizeMessage } from "../server/outreach";
 import { dispatchQueuedLeads, type DispatcherConfig } from "./dispatcher";
 
 export type RepoLead = ReturnType<typeof personalizeMessage> & {
@@ -50,11 +50,10 @@ export function renderPages(leads: RepoLead[], runs: Array<Record<string, unknow
   const reportLeads = leads.map(lead => lead.contactEmail && !isUsableEmail(lead.contactEmail) ? { ...lead, contactEmail: undefined, publicContactRoute: lead.publicContactRoute?.startsWith("mailto:") ? undefined : lead.publicContactRoute, contactRouteType: lead.publicContactRoute?.startsWith("mailto:") ? "none" as const : lead.contactRouteType } : lead);
   const rows = reportLeads.map(lead => `<tr><td>${esc(lead.storeName)}</td><td>${esc(lead.niche)}</td><td>${esc(lead.contactEmail ?? "No support email found")}</td><td>${esc(lead.region)}</td><td><a href="${esc(lead.storeUrl)}" target="_blank" rel="noreferrer">${esc(lead.storeUrl)}</a></td><td>${lead.publicContactRoute ? `<a href="${esc(lead.publicContactRoute)}" target="_blank" rel="noreferrer">Open contact route</a>` : "No public route"}</td><td>${esc(lead.contactStatus)}</td></tr>`).join("");
   const table = `<table><thead><tr><th>Store</th><th>Niche</th><th>Support email</th><th>Region</th><th>Store URL</th><th>Contact route</th><th>Status</th></tr></thead><tbody>${rows || "<tr><td colspan=7>No leads yet</td></tr>"}</tbody></table>`;
-  const reviewLeads = reportLeads.filter(lead => lead.verificationStatus === "qualified" && lead.contactStatus !== "sent");
+  const reviewLeads = reportLeads.filter(lead => lead.verificationStatus === "qualified" && lead.contactStatus !== "sent" && hasBrowserContactPage(lead.publicContactRoute) && isUsableEmail(lead.contactEmail));
   const protectedLeads = reviewLeads.filter(lead => lead.contactFormProtected);
   const readyLeads = reviewLeads.filter(lead => !lead.contactFormProtected && /^https?:\/\//i.test(lead.publicContactRoute ?? ""));
-  const emailOnlyLeads = reviewLeads.filter(lead => !lead.contactFormProtected && /^mailto:/i.test(lead.publicContactRoute ?? ""));
-  const unavailableLeads = reviewLeads.filter(lead => !lead.publicContactRoute);
+
   const renderContactCard = (lead: RepoLead) => {
     const emailHref = lead.contactEmail ? `mailto:${lead.contactEmail}?subject=${encodeURIComponent(lead.subject)}&body=${encodeURIComponent(lead.body)}` : undefined;
     const contactAction = /^https?:\/\//i.test(lead.publicContactRoute ?? "") ? `<a class="send" href="${esc(lead.publicContactRoute)}" target="_blank" rel="noreferrer">Open Contact page</a>` : emailHref ? `<a class="send email-send" href="${esc(emailHref)}">Open email</a>` : `<span class="unavailable">No public Contact page found</span>`;
@@ -66,7 +65,7 @@ export function renderPages(leads: RepoLead[], runs: Array<Record<string, unknow
   writeFileSync(join(DATA_DIR, "leads.csv"), csvRows + "\n");
   writeFileSync(join(DATA_DIR, "dashboard.html"), shell("Store Outreach Operations", `<p>Repository-backed hourly report. Runs recorded: ${runs.length}. Leads tracked: ${leads.length}.</p><h2>Latest runs</h2><pre>${esc(JSON.stringify(runs.slice(-10).reverse(), null, 2))}</pre>`));
   const storesPage = shell("Verified stores", `<p>${leads.length} repository records. Fields are ordered as store name, niche, support email, region, store URL, and contact route. Download CSV/JSON for phone-friendly follow-up.</p>${table}`);
-  const contactReviewPage = shell("Contact queue", `<p>${reviewLeads.length} qualified lead(s) in the send queue: ${readyLeads.length} Contact pages, ${protectedLeads.length} protected forms, ${emailOnlyLeads.length} email-only records, and ${unavailableLeads.length} with no public Contact page. Every card keeps its personalized subject and message; only verified http/https Contact pages are clickable.</p><h2>Contact pages</h2>${readyLeads.map(renderContactCard).join("") || "<p>No Contact pages are waiting.</p>"}<h2>Protected forms requiring manual review</h2>${protectedLeads.map(renderContactCard).join("") || "<p>No protected forms are waiting for review.</p>"}<h2>Email-only — no Contact page</h2>${emailOnlyLeads.map(renderContactCard).join("") || "<p>No email-only records.</p>"}<h2>No public Contact page found</h2>${unavailableLeads.map(renderContactCard).join("") || "<p>No unavailable contact records.</p>"}`);
+  const contactReviewPage = shell("Contact queue", `<p>${reviewLeads.length} qualified lead(s) meet the Contact-plus-email requirement: ${readyLeads.length} Contact pages, ${protectedLeads.length} protected forms. Records missing either requirement are excluded from this send queue and remain available in Stores.</p><h2>Contact pages</h2>${readyLeads.map(renderContactCard).join("") || "<p>No Contact pages are waiting.</p>"}<h2>Protected forms requiring manual review</h2>${protectedLeads.map(renderContactCard).join("") || "<p>No protected forms are waiting for review.</p>"}`);
   writeFileSync(join(DATA_DIR, "leads.html"), storesPage);
   writeFileSync(join(DATA_DIR, "stores.html"), storesPage);
   writeFileSync(join(DATA_DIR, "review.html"), contactReviewPage);

@@ -376,7 +376,7 @@ export async function qualifyStore(storeUrl: string): Promise<QualificationResul
       if (/<form\b/i.test(contactPage.text)) {
         contactRouteType = "contact_form";
         publicContactRoute = contactUrl;
-        contactEmail = contactPageEmail;
+        contactEmail = contactPageEmail ?? homepageEmail;
         contactFormProtected = protection.protected;
         protectionReason = protection.reason;
       } else if (contactPageEmail) {
@@ -431,10 +431,18 @@ export function buildManualReviewDraft(storeName: string, niche: string, storeUr
   return { ...personalizeMessage(storeName, niche, storeUrl), contactRoute };
 }
 
-export function getContactDisposition(input: Pick<QualificationResult, "verificationStatus" | "publicContactRoute" | "contactFormProtected">) {
+export function hasBrowserContactPage(route?: string) {
+  return /^https?:\/\//i.test(route ?? "");
+}
+
+export function isContactQueueEligible(input: Pick<QualificationResult, "verificationStatus" | "publicContactRoute" | "contactFormProtected" | "contactEmail">) {
+  return input.verificationStatus === "qualified" && hasBrowserContactPage(input.publicContactRoute) && isUsableEmail(input.contactEmail);
+}
+
+export function getContactDisposition(input: Pick<QualificationResult, "verificationStatus" | "publicContactRoute" | "contactFormProtected" | "contactEmail">) {
+  if (!isContactQueueEligible(input)) return "not_contacted" as const;
   if (input.contactFormProtected) return "review" as const;
-  if (input.verificationStatus === "qualified" && input.publicContactRoute) return "queued" as const;
-  return "not_contacted" as const;
+  return "queued" as const;
 }
 
 export async function runDiscoveryCycle(targetCount = 84, idempotencyKey?: string) {
@@ -448,7 +456,8 @@ export async function runDiscoveryCycle(targetCount = 84, idempotencyKey?: strin
   let protectedForms = 0;
   let queued = 0;
   try {
-    const allowedUrls = await collectGeoCandidates(targetCount, page => discoverPublicStoreUrls(targetCount, page));
+    const candidateTarget = Math.min(Math.max(targetCount * 8, 500), 1000);
+    const allowedUrls = await collectGeoCandidates(candidateTarget, page => discoverPublicStoreUrls(candidateTarget, page));
     discovered = allowedUrls.length;
 
     for (let cursor = 0; cursor < allowedUrls.length && qualified < targetCount; cursor += 8) {
@@ -463,11 +472,12 @@ export async function runDiscoveryCycle(targetCount = 84, idempotencyKey?: strin
           failures += 1;
           continue;
         }
-        if (result.verificationStatus === "qualified") qualified += 1;
+        const targetEligible = result.verificationStatus === "qualified" && isPriorityNiche(result.niche) && isContactQueueEligible(result);
+        if (targetEligible) qualified += 1;
         else failures += 1;
         if (result.contactFormProtected) protectedForms += 1;
-          const contactDisposition = getContactDisposition(result);
-          const isQueueable = contactDisposition === "queued";
+        const contactDisposition = getContactDisposition(result);
+        const isQueueable = contactDisposition === "queued" || contactDisposition === "review";
         const saved = await upsertLead({
           normalizedHost: result.normalizedHost,
           storeName: result.storeName,
