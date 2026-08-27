@@ -85,6 +85,21 @@ describe("outreach utilities", () => {
     expect(result.responseTimeMs).toBeGreaterThanOrEqual(0);
   });
 
+  it("marks a storefront inactive when the bounded live recheck fails", async () => {
+    let homepageChecks = 0;
+    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.endsWith("/robots.txt")) return new Response("", { status: 404 });
+      homepageChecks += 1;
+      if (homepageChecks === 1) return new Response("<html lang=\"en\"><title>Live Goods</title><body>Shopify electronics products Add to cart</body></html>", { status: 200 });
+      return new Response("", { status: 503 });
+    }));
+    const result = await qualifyStore("https://recheck-fails.myshopify.com/");
+    expect(result.verificationStatus).toBe("inactive");
+    expect(result.activityChecks).toBe(2);
+    expect(result.activityEvidence).toContain("live recheck HTTP 503");
+  });
+
   it("classifies a password-locked storefront as inactive", async () => {
     vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
       if (String(input).endsWith("/robots.txt")) return new Response("", { status: 404 });

@@ -65,6 +65,8 @@ export type QualificationResult = StoreCandidate & {
   contactFormProtected: boolean;
   protectionReason?: string;
   responseTimeMs: number;
+  activityChecks?: number;
+  activityEvidence?: string;
 };
 
 function absoluteUrl(value: string, base: string) {
@@ -195,9 +197,27 @@ async function fetchText(url: string, timeoutMs = 6500, maxAttempts = 3) {
       clearTimeout(timeout);
     }
   }
-  throw lastError instanceof Error ? lastError : new Error(`Unable to fetch ${url}`);
+    throw lastError instanceof Error ? lastError : new Error(`Unable to fetch ${url}`);
 }
 
+async function confirmLiveActivity(url: string) {
+  const startedAt = Date.now();
+  try {
+    const recheck = await fetchText(url, 4500, 1);
+    const active = recheck.response.ok && recheck.response.status < 500;
+    return {
+      active,
+      checks: 1,
+      evidence: `live recheck HTTP ${recheck.response.status}; response time ${Date.now() - startedAt}ms`,
+    };
+  } catch (error) {
+    return {
+      active: false,
+      checks: 1,
+      evidence: `live recheck failed: ${String(error)}; response time ${Date.now() - startedAt}ms`,
+    };
+  }
+}
 async function robotsAllow(url: string) {
   try {
     const parsed = new URL(url);
@@ -371,9 +391,25 @@ export async function qualifyStore(storeUrl: string): Promise<QualificationResul
         contactRouteType: "none",
         contactFormProtected: false,
         responseTimeMs: Date.now() - startedAt,
+            };
+    }
+    const activity = await confirmLiveActivity(homepage.response.url || requestedUrl);
+    if (!activity.active) {
+      return {
+        storeUrl: homepage.response.url || requestedUrl,
+        normalizedHost,
+        storeName,
+        niche,
+        ...region,
+        verificationStatus: "inactive",
+        verificationEvidence: `${evidence}; ${activity.evidence}; live activity not confirmed across two bounded checks`,
+        contactRouteType: "none",
+        contactFormProtected: false,
+        responseTimeMs: Date.now() - startedAt,
+        activityChecks: activity.checks + 1,
+        activityEvidence: activity.evidence,
       };
     }
-
     const homepageEmail = firstEmail(homepage.text);
     const contactUrl = findContactLink(homepage.text, homepage.response.url || requestedUrl);
     let contactRouteType: ContactRouteType = homepageEmail ? "email" : "none";
@@ -405,13 +441,15 @@ export async function qualifyStore(storeUrl: string): Promise<QualificationResul
       niche,
       ...region,
       verificationStatus: "qualified",
-      verificationEvidence: `${evidence}; contact route ${contactRouteType}${protectionReason ? `; protected by ${protectionReason}` : ""}`,
+      verificationEvidence: `${evidence}; ${activity.evidence}; live activity confirmed across two bounded checks; contact route ${contactRouteType}${protectionReason ? `; protected by ${protectionReason}` : ""}`,
       publicContactRoute,
       contactRouteType,
       contactEmail,
       contactFormProtected,
       protectionReason,
       responseTimeMs: Date.now() - startedAt,
+      activityChecks: activity.checks + 1,
+      activityEvidence: activity.evidence,
     };
   } catch (error) {
     const region = inferRegion(requestedUrl, "");
