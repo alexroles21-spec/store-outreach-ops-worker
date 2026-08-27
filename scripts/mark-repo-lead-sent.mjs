@@ -6,7 +6,7 @@ const file = "data/leads.json";
 const leads = JSON.parse(readFileSync(file, "utf8"));
 const lead = leads.find(item => item.normalizedHost === host);
 if (!lead) throw new Error(`No lead found for normalized host: ${host}`);
-if (lead.contactFormProtected !== true || lead.contactStatus !== "review") throw new Error("Only a CAPTCHA review lead in review status may be marked sent");
+if (!lead.publicContactRoute || !["review", "queued"].includes(lead.contactStatus)) throw new Error("Only a pending contact lead with a public route may be marked sent");
 lead.contactStatus = "sent";
 lead.deliveryStatus = "sent";
 lead.manualSentAt = new Date().toISOString();

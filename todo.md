@@ -196,3 +196,4 @@
 
 - [x] Remove manually sent review leads from the send-review queue while keeping the contact directory stable and using sent state for durable no-repeat checks. (Mark-sent workflow now regenerates reports; 23 tests and typecheck pass.)
 - [x] Add a clear review-page control to mark a manually sent lead as sent and remove its card immediately, while preserving it in the stable Stores directory. (Added “I sent it — remove from queue”; durable GitHub recording remains available.)
+- [x] Show qualified non-CAPTCHA contact leads in the external contact page alongside CAPTCHA review leads, with clear action/status labels and no change to the stable directory. (Current report has separate Ready contact routes and Protected forms sections; 24 tests, typecheck, build, and refresh pass.)
