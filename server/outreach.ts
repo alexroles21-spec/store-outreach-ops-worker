@@ -110,10 +110,18 @@ function inferRegion(url: string, text: string) {
   return { region: "OTHER", regionConfidence: "low" };
 }
 
+export function isUsableEmail(email?: string) {
+  if (!email) return false;
+  const lower = email.toLowerCase();
+  const extension = lower.split(".").pop() ?? "";
+  const ignoredDomains = ["example.com", "sentry.io", "wixpress.com", "yourdomain.com"];
+  const assetExtensions = new Set(["png", "jpg", "jpeg", "gif", "webp", "svg", "css", "js"]);
+  return !assetExtensions.has(extension) && !ignoredDomains.some(domain => lower.endsWith(`@${domain}`));
+}
+
 function firstEmail(...sources: string[]) {
   const matches = sources.join(" ").match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi) ?? [];
-  const ignored = ["example.com", "sentry.io", "wixpress.com"];
-  return matches.find(email => !ignored.some(domain => email.toLowerCase().endsWith(`@${domain}`)));
+  return matches.find(isUsableEmail);
 }
 
 function findContactLink(html: string, baseUrl: string) {
@@ -127,6 +135,10 @@ function findContactLink(html: string, baseUrl: string) {
     }
   }
   return undefined;
+}
+
+export function detectLockedStore(html: string) {
+  return /(?:shopify|myshopify)[\s\S]{0,180}(?:password protected|enter using password|store is locked|opening soon)|(?:password protected|enter using password|store is locked|opening soon)[\s\S]{0,180}(?:shopify|myshopify)/i.test(html) || /<input[^>]+type=["']password["']/i.test(html) && /(?:store|shopify|password)/i.test(html);
 }
 
 export function detectProtectedForm(html: string) {
@@ -324,16 +336,17 @@ export async function qualifyStore(storeUrl: string): Promise<QualificationResul
     const storeName = (title && title.length > 2 ? title : undefined) || ogTitle || siteName || normalizedHost.split(".")[0].replace(/[-_]/g, " ");
     const region = inferRegion(requestedUrl, body);
     const ecomSignal = /shopify|myshopify|add to cart|shopping cart|products?\b|checkout|application\/ld\+json/i.test(homepage.text);
-    const evidence = `HTTP ${homepage.response.status}; final URL ${homepage.response.url}; e-commerce signal ${ecomSignal ? "detected" : "not detected"}; checked ${new Date().toISOString()}`;
-    if (!homepage.response.ok || !ecomSignal) {
+    const locked = detectLockedStore(homepage.text);
+    const evidence = `HTTP ${homepage.response.status}; final URL ${homepage.response.url}; e-commerce signal ${ecomSignal ? "detected" : "not detected"}; storefront lock ${locked ? "detected" : "not detected"}; checked ${new Date().toISOString()}`;
+    if (locked || !homepage.response.ok || !ecomSignal) {
       return {
         storeUrl: homepage.response.url || requestedUrl,
         normalizedHost,
         storeName,
         niche: inferNiche(body, normalizedHost),
         ...region,
-        verificationStatus: homepage.response.ok ? "failed" : "inactive",
-        verificationEvidence: `${evidence}; response time ${Date.now() - startedAt}ms`,
+        verificationStatus: locked ? "inactive" : homepage.response.ok ? "failed" : "inactive",
+        verificationEvidence: `${evidence}; response time ${Date.now() - startedAt}ms${locked ? "; storefront is password-locked" : ""}`,
         contactRouteType: "none",
         contactFormProtected: false,
         responseTimeMs: Date.now() - startedAt,

@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { buildHourlyIdempotencyKey } from "./scheduled";
-import { buildManualReviewDraft, collectGeoCandidates, dedupeCandidates, detectProtectedForm, getContactDisposition, isPriorityNiche, normalizeHost, personalizeMessage, qualifyStore } from "./outreach";
+import { buildManualReviewDraft, collectGeoCandidates, dedupeCandidates, detectLockedStore, detectProtectedForm, getContactDisposition, isPriorityNiche, normalizeHost, personalizeMessage, qualifyStore } from "./outreach";
 
 describe("outreach utilities", () => {
   afterEach(() => vi.unstubAllGlobals());
@@ -14,6 +14,11 @@ describe("outreach utilities", () => {
       "https://www.alpha.myshopify.com/",
       "https://beta.myshopify.com/",
     ]);
+  });
+
+  it("marks password-locked storefronts as inaccessible", () => {
+    expect(detectLockedStore('<html><title>Opening soon</title><body>Shopify store is password protected <input type="password" /></body></html>')).toBe(true);
+    expect(detectLockedStore('<html><title>Shopify Store</title><body>Products and Add to cart</body></html>')).toBe(false);
   });
 
   it("marks common CAPTCHA signals as review-only protection", () => {
@@ -49,6 +54,16 @@ describe("outreach utilities", () => {
     expect(result.verificationStatus).toBe("qualified");
     expect(result.storeName).toBe("North Star Goods");
     expect(result.responseTimeMs).toBeGreaterThanOrEqual(0);
+  });
+
+  it("classifies a password-locked storefront as inactive", async () => {
+    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
+      if (String(input).endsWith("/robots.txt")) return new Response("", { status: 404 });
+      return new Response('<html><title>Opening soon</title><body>Shopify store is password protected <input type="password" /></body></html>', { status: 200 });
+    }));
+    const result = await qualifyStore("https://locked.myshopify.com/");
+    expect(result.verificationStatus).toBe("inactive");
+    expect(result.verificationEvidence).toContain("password-locked");
   });
 
   it("classifies non-commerce content as failed", async () => {

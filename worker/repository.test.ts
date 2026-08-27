@@ -41,6 +41,7 @@ describe("repository dispatcher integration", () => {
       qualifyStore: vi.fn(async () => ({ storeName: "Example Store", niche: "Electronics", storeUrl: "https://example-store.test", normalizedHost: "example-store.test", region: "US", publicContactRoute: "https://example-store.test/contact", contactEmail: "owner@example-store.test", contactFormProtected: false, verificationStatus: "qualified", verificationEvidence: "HTTP 200", responseTimeMs: 10, protectionReason: undefined })),
       personalizeMessage: vi.fn(() => ({ senderEmail: "sender@example.test", subject: "Subject", body: "Body" })),
       isPriorityNiche: vi.fn((niche: string) => niche !== "General e-commerce"),
+      isUsableEmail: vi.fn((email?: string) => Boolean(email && !email.endsWith(".png"))),
     }));
     const { runRepositoryCycle } = await import("./repository");
     const run = await runRepositoryCycle(1);
