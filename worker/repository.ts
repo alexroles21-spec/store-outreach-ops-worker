@@ -1,6 +1,6 @@
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { collectGeoCandidates, isPriorityNiche, qualifyStore, personalizeMessage } from "../server/outreach";
+import { collectGeoCandidates, qualifyStore, personalizeMessage } from "../server/outreach";
 import { dispatchQueuedLeads, type DispatcherConfig } from "./dispatcher";
 
 export type RepoLead = ReturnType<typeof personalizeMessage> & {
@@ -49,7 +49,7 @@ export function renderPages(leads: RepoLead[], runs: Array<Record<string, unknow
   const links = `<nav><a href="dashboard.html">Run status</a> · <a href="stores.html">Stores</a> · <a href="contact-review.html">Contact review</a> · <a href="leads.csv" download>Download CSV</a> · <a href="leads.json" download>Download JSON</a></nav>`;
   const rows = leads.map(lead => `<tr><td>${esc(lead.storeName)}</td><td>${esc(lead.niche)}</td><td>${esc(lead.region)}</td><td><a href="${esc(lead.storeUrl)}" target="_blank" rel="noreferrer">Store</a></td><td>${lead.publicContactRoute ? `<a href="${esc(lead.publicContactRoute)}" target="_blank" rel="noreferrer">${esc(lead.publicContactRoute)}</a>` : "No public route"}</td><td>${esc(lead.contactStatus)}</td></tr>`).join("");
   const table = `<table><thead><tr><th>Store</th><th>Niche</th><th>Region</th><th>URL</th><th>Contact route</th><th>Status</th></tr></thead><tbody>${rows || "<tr><td colspan=6>No leads yet</td></tr>"}</tbody></table>`;
-  const reviewLeads = leads.filter(lead => lead.verificationStatus === "qualified" && isPriorityNiche(lead.niche) && lead.contactStatus !== "sent");
+  const reviewLeads = leads.filter(lead => lead.verificationStatus === "qualified" && lead.contactStatus !== "sent");
   const protectedLeads = reviewLeads.filter(lead => lead.contactFormProtected);
   const readyLeads = reviewLeads.filter(lead => !lead.contactFormProtected && Boolean(lead.publicContactRoute));
   const unavailableLeads = reviewLeads.filter(lead => !lead.publicContactRoute);
@@ -60,7 +60,7 @@ export function renderPages(leads: RepoLead[], runs: Array<Record<string, unknow
   writeFileSync(join(DATA_DIR, "leads.csv"), csvRows + "\n");
   writeFileSync(join(DATA_DIR, "dashboard.html"), shell("Store Outreach Operations", `<p>Repository-backed hourly report. Runs recorded: ${runs.length}. Leads tracked: ${leads.length}.</p><h2>Latest runs</h2><pre>${esc(JSON.stringify(runs.slice(-10).reverse(), null, 2))}</pre>`));
   const storesPage = shell("Verified stores", `<p>${leads.length} repository records. Download CSV/JSON for phone-friendly follow-up.</p>${table}`);
-  const contactReviewPage = shell("Contact queue", `<p>${reviewLeads.length} pending requested-niche lead(s): ${readyLeads.length} ready routes, ${protectedLeads.length} protected forms, and ${unavailableLeads.length} with no public route found. Every card keeps its personalized subject and message; only cards with a route can be opened for sending.</p><h2>Ready contact routes</h2>${readyLeads.map(renderContactCard).join("") || "<p>No ready contact routes are waiting.</p>"}<h2>Protected forms requiring manual review</h2>${protectedLeads.map(renderContactCard).join("") || "<p>No protected forms are waiting for review.</p>"}<h2>No public route found</h2>${unavailableLeads.map(renderContactCard).join("") || "<p>No unavailable contact records.</p>"}`);
+  const contactReviewPage = shell("Contact queue", `<p>${reviewLeads.length} qualified lead(s) in the send queue: ${readyLeads.length} ready routes, ${protectedLeads.length} protected forms, and ${unavailableLeads.length} with no public route found. Every card keeps its personalized subject and message; only cards with a route can be opened for sending.</p><h2>Ready contact routes</h2>${readyLeads.map(renderContactCard).join("") || "<p>No ready contact routes are waiting.</p>"}<h2>Protected forms requiring manual review</h2>${protectedLeads.map(renderContactCard).join("") || "<p>No protected forms are waiting for review.</p>"}<h2>No public route found</h2>${unavailableLeads.map(renderContactCard).join("") || "<p>No unavailable contact records.</p>"}`);
   writeFileSync(join(DATA_DIR, "leads.html"), storesPage);
   writeFileSync(join(DATA_DIR, "stores.html"), storesPage);
   writeFileSync(join(DATA_DIR, "review.html"), contactReviewPage);
