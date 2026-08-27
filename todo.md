@@ -176,7 +176,7 @@
 - [x] Add scalable region/source quotas and report source exhaustion honestly instead of fabricating a daily millions-store capacity. (Implemented as bounded per-source retrieval, regional filtering, crawl cursor progression, and truthful source-exhaustion reporting.)
 - [x] Keep a temporary Common Crawl outage from failing the GitHub job; persist an honest below-target run when the public source is unavailable.
 - [x] Package the standalone local authorized POST worker with a continuous background-service launcher and verify automatic non-mock execution against a local test endpoint. (End-to-end loop smoke test passed with a live local HTTP server and persisted `succeeded`/200 SQLite result.)
-- [ ] Deliver the standalone local Python dispatcher variant with opted-in gating, 43-second sequential pacing, local endpoint allowlisting, and persisted delivery state.
+- [x] Deliver the standalone local Python dispatcher variant with opted-in gating, 43-second sequential pacing, local endpoint allowlisting, and persisted delivery state. (Validated separately with the local SQLite worker package and end-to-end loop smoke test.)
 - [x] Add a guarded GitHub sequential webhook dispatcher for opted-in, non-CAPTCHA leads using a repository secret token, an allowlisted endpoint, 43-second pacing, and durable delivery status. (Implemented and covered by dispatcher tests; activation remains disabled until the operator supplies GitHub secrets and a reachable authorized endpoint.)
 - [x] Add a persisted explicit opt-in registry for repository-mode leads and initialize delivery fields from that registry.
 - [x] Document the self-hosted-runner requirement for a webhook endpoint bound to the operator’s local machine. (Documented; live GitHub dispatch verification remains pending because no runner or endpoint was supplied.)
@@ -185,3 +185,5 @@
 - [x] Add downloadable CSV/JSON export for the complete lead list from the repository reports.
 - [x] Diagnose and fix the latest managed-dashboard healthcheck failure without changing the GitHub Actions worker path. (Automation settings now return a stable fallback object; restart and build checks pass.)
 - [x] Add a live review landing page route with clear lead cards, prefilled message fields, contact links, durable sent action, and CSV/JSON downloads. (Route `/review` reuses the authenticated Leads UI; repository reports provide static GitHub artifacts and durable sent workflow.)
+- [x] Extend the GitHub Actions job to use the full hourly discovery window and avoid treating a partial source page as a completed 84-store cycle. (Workflow timeout is 60 minutes and candidate backfill is expanded; source exhaustion is still reported honestly.)
+- [x] Publish separate external repository report pages for verified stores and contact-route review, with mobile-friendly links and downloads. (Generated as `stores.html`, `contact-review.html`, `leads.csv`, and `leads.json` in the repository `data/` directory.)

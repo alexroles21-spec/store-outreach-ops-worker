@@ -46,7 +46,7 @@ function csv(value: unknown) {
 }
 
 function renderPages(leads: RepoLead[], runs: Array<Record<string, unknown>>) {
-  const links = `<nav><a href="dashboard.html">Run status</a> · <a href="leads.html">All leads</a> · <a href="review.html">CAPTCHA review</a> · <a href="leads.csv" download>Download CSV</a> · <a href="leads.json" download>Download JSON</a></nav>`;
+  const links = `<nav><a href="dashboard.html">Run status</a> · <a href="stores.html">Stores</a> · <a href="contact-review.html">Contact review</a> · <a href="leads.csv" download>Download CSV</a> · <a href="leads.json" download>Download JSON</a></nav>`;
   const rows = leads.map(lead => `<tr><td>${esc(lead.storeName)}</td><td>${esc(lead.niche)}</td><td>${esc(lead.region)}</td><td><a href="${esc(lead.storeUrl)}" target="_blank" rel="noreferrer">Store</a></td><td>${lead.publicContactRoute ? `<a href="${esc(lead.publicContactRoute)}" target="_blank" rel="noreferrer">${esc(lead.publicContactRoute)}</a>` : "No public route"}</td><td>${esc(lead.contactStatus)}</td></tr>`).join("");
   const table = `<table><thead><tr><th>Store</th><th>Niche</th><th>Region</th><th>URL</th><th>Contact route</th><th>Status</th></tr></thead><tbody>${rows || "<tr><td colspan=6>No leads yet</td></tr>"}</tbody></table>`;
   const reviewLeads = leads.filter(lead => lead.contactFormProtected && lead.contactStatus === "review");
@@ -55,8 +55,12 @@ function renderPages(leads: RepoLead[], runs: Array<Record<string, unknown>>) {
   const csvRows = ["store_name,niche,region,store_url,contact_route,contact_email,contact_status,opted_in,delivery_status,subject,body", ...leads.map(lead => [lead.storeName, lead.niche, lead.region, lead.storeUrl, lead.publicContactRoute, lead.contactEmail, lead.contactStatus, lead.optedIn, lead.deliveryStatus, lead.subject, lead.body].map(csv).join(","))].join("\n");
   writeFileSync(join(DATA_DIR, "leads.csv"), csvRows + "\n");
   writeFileSync(join(DATA_DIR, "dashboard.html"), shell("Store Outreach Operations", `<p>Repository-backed hourly report. Runs recorded: ${runs.length}. Leads tracked: ${leads.length}.</p><h2>Latest runs</h2><pre>${esc(JSON.stringify(runs.slice(-10).reverse(), null, 2))}</pre>`));
-  writeFileSync(join(DATA_DIR, "leads.html"), shell("Lead directory", `<p>Protected forms are marked review; no CAPTCHA is bypassed.</p>${table}`));
-  writeFileSync(join(DATA_DIR, "review.html"), shell("CAPTCHA manual review", `<p>${reviewLeads.length} protected form(s) require manual review. The contact link opens the store form; verify the site permits contact before sending.</p>${reviewCards || "<p>No protected forms are waiting for review.</p>"}`));
+  const storesPage = shell("Verified stores", `<p>${leads.length} repository records. Download CSV/JSON for phone-friendly follow-up.</p>${table}`);
+  const contactReviewPage = shell("Contact review", `<p>${reviewLeads.length} protected form(s) require manual review. The contact link opens the store form; verify the site permits contact before sending.</p>${reviewCards || "<p>No protected forms are waiting for review.</p>"}`);
+  writeFileSync(join(DATA_DIR, "leads.html"), storesPage);
+  writeFileSync(join(DATA_DIR, "stores.html"), storesPage);
+  writeFileSync(join(DATA_DIR, "review.html"), contactReviewPage);
+  writeFileSync(join(DATA_DIR, "contact-review.html"), contactReviewPage);
 }
 
 export async function runRepositoryCycle(targetCount = 84) {
@@ -70,7 +74,8 @@ export async function runRepositoryCycle(targetCount = 84) {
   const cursor = readJson<{ page: number }>(CURSOR_FILE, { page: 0 });
   const startedAt = new Date().toISOString();
   const startPage = Math.max(0, cursor.page);
-  const urls = await collectGeoCandidates(targetCount, page => import("../server/outreach").then(module => module.discoverPublicStoreUrls(targetCount, startPage + page)));
+  const candidateBudget = Math.min(Math.max(targetCount * 6, targetCount), 1000);
+  const urls = await collectGeoCandidates(candidateBudget, page => import("../server/outreach").then(module => module.discoverPublicStoreUrls(candidateBudget, startPage + page)));
   // Advance the durable source cursor after every bounded cycle; the lead host set below prevents reuse.
   const nextCursor = { page: startPage + 1, updatedAt: startedAt };
   let qualified = 0; let failures = 0; let protectedForms = 0; let queued = 0;
@@ -94,7 +99,7 @@ export async function runRepositoryCycle(targetCount = 84) {
     const config: DispatcherConfig = { endpoint, token, allowedHost, intervalMs: Math.max(43_000, Number(process.env.DISPATCH_INTERVAL_MS ?? 43_000)), maxPerRun: Math.min(84, Number(process.env.DISPATCH_MAX_PER_RUN ?? 84)), timeoutMs: Math.max(1000, Number(process.env.DISPATCH_TIMEOUT_MS ?? 15_000)) };
     dispatch = await dispatchQueuedLeads(leads, config, () => undefined);
   }
-  const run = { startedAt, finishedAt: new Date().toISOString(), target: targetCount, discovered: urls.length, qualified, failures, protectedForms, queued, dispatch, sourcePage: startPage, nextSourcePage: nextCursor.page };
+  const run = { startedAt, finishedAt: new Date().toISOString(), target: targetCount, candidateBudget, discovered: urls.length, qualified, failures, protectedForms, queued, dispatch, sourcePage: startPage, nextSourcePage: nextCursor.page };
   writeFileSync(CURSOR_FILE, JSON.stringify(nextCursor, null, 2) + "\n");
   writeFileSync(OPT_IN_FILE, JSON.stringify(optInRegistry, null, 2) + "\n");
   runs.push(run);

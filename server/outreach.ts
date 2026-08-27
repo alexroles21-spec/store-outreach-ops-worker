@@ -228,9 +228,10 @@ export async function discoverPublicStoreUrls(target: number, page = 0) {
     console.warn(JSON.stringify({ event: "discovery_collections_invalid", error: String(error) }));
     return { urls: [], exhausted: true };
   }
-  const patternIndex = Math.floor(page / 2) % patterns.length;
-  const collectionIndex = Math.floor(page / (patterns.length * 2));
-  const pageOffset = Math.floor(page / patterns.length) % 2;
+  const pageSpan = 12;
+  const patternIndex = Math.floor(page / pageSpan) % patterns.length;
+  const collectionIndex = Math.floor(page / (patterns.length * pageSpan));
+  const pageOffset = Math.floor(page / patterns.length) % pageSpan;
   const collection = collections[collectionIndex];
   if (!collection?.id) return { urls: [], exhausted: true };
   const query = new URL(`https://index.commoncrawl.org/${collection.id}-index`);

@@ -26,7 +26,7 @@ concurrency:
 jobs:
   discover:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 60
     env:
       WORKER_STORAGE: "repository"
       WORKER_INTERVAL_MINUTES: "60"
