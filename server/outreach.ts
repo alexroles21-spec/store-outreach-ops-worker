@@ -9,7 +9,7 @@ import {
 
 const COMMON_CRAWL_COLLECTIONS = "https://index.commoncrawl.org/collinfo.json";
 const USER_AGENT = "StoreOutreachResearch/1.0 (+public-lead-review)";
-const REGIONS = ["US", "CA", "EU", "AU"] as const;
+const REGIONS = ["US", "CA", "UK", "EU", "AU"] as const;
 const NICHE_RULES: Array<[string, string[]]> = [
   ["Skincare & anti-aging", ["skincare", "skin care", "anti-aging", "antiaging", "serum", "moisturizer", "retinol"]],
   ["Hair care", ["hair growth", "hair oil", "haircare", "hair care", "styler", "hair brush", "brushes"]],
@@ -105,9 +105,17 @@ function inferRegion(url: string, text: string) {
   const lower = `${host} ${text}`.toLowerCase();
   if (host.endsWith(".ca") || /\b(cad|canada|ontario|toronto|montreal)\b/.test(lower)) return { region: "CA", regionConfidence: "high" };
   if (host.endsWith(".au") || /\b(aud|australia|sydney|melbourne)\b/.test(lower)) return { region: "AU", regionConfidence: "high" };
+  if (host.endsWith(".co.uk") || host.endsWith(".uk") || /\b(gbp|united kingdom|england|london|manchester|birmingham)\b/.test(lower)) return { region: "UK", regionConfidence: "high" };
   if ([".de", ".fr", ".it", ".es", ".nl", ".be", ".se", ".dk", ".no", ".fi", ".ie", ".pt", ".at", ".eu"].some(tld => host.endsWith(tld)) || /\b(eur|europe|european)\b/.test(lower)) return { region: "EU", regionConfidence: "high" };
   if (host.endsWith(".com") || /\b(usd|united states|usa|new york|california|texas)\b/.test(lower)) return { region: "US", regionConfidence: host.endsWith(".com") ? "medium" : "high" };
   return { region: "OTHER", regionConfidence: "low" };
+}
+
+export function isEnglishStorefront(html: string) {
+  const lang = html.match(/<html\b[^>]*\blang=["']([^"']+)["']/i)?.[1];
+  if (lang) return /^en(?:-|$)/i.test(lang);
+  const nonEnglishMarkers = /\b(über uns|kontakt|warenkorb|datenschutz|versand|impressum|à propos|contactez[- ]nous|panier|livraison|mentions légales|contáctanos|carrito|envío|acerca de|chi siamo|carrello|spedizione|contato|carrinho|entrega)\b/i;
+  return !nonEnglishMarkers.test(escapeText(html));
 }
 
 export function isUsableEmail(email?: string) {
@@ -336,41 +344,45 @@ export async function qualifyStore(storeUrl: string): Promise<QualificationResul
     const storeName = (title && title.length > 2 ? title : undefined) || ogTitle || siteName || normalizedHost.split(".")[0].replace(/[-_]/g, " ");
     const region = inferRegion(requestedUrl, body);
     const ecomSignal = /shopify|myshopify|add to cart|shopping cart|products?\b|checkout|application\/ld\+json/i.test(homepage.text);
+    const english = isEnglishStorefront(homepage.text);
     const locked = detectLockedStore(homepage.text);
     const evidence = `HTTP ${homepage.response.status}; final URL ${homepage.response.url}; e-commerce signal ${ecomSignal ? "detected" : "not detected"}; storefront lock ${locked ? "detected" : "not detected"}; checked ${new Date().toISOString()}`;
-    if (locked || !homepage.response.ok || !ecomSignal) {
+    if (locked || !homepage.response.ok || !ecomSignal || !english) {
       return {
         storeUrl: homepage.response.url || requestedUrl,
         normalizedHost,
         storeName,
         niche: inferNiche(body, normalizedHost),
         ...region,
-        verificationStatus: locked ? "inactive" : homepage.response.ok ? "failed" : "inactive",
-        verificationEvidence: `${evidence}; response time ${Date.now() - startedAt}ms${locked ? "; storefront is password-locked" : ""}`,
+        verificationStatus: locked ? "inactive" : !english ? "failed" : homepage.response.ok ? "failed" : "inactive",
+        verificationEvidence: `${evidence}; response time ${Date.now() - startedAt}ms${locked ? "; storefront is password-locked" : !english ? "; storefront language is not English" : ""}`,
         contactRouteType: "none",
         contactFormProtected: false,
         responseTimeMs: Date.now() - startedAt,
       };
     }
 
-    const email = firstEmail(homepage.text);
+    const homepageEmail = firstEmail(homepage.text);
     const contactUrl = findContactLink(homepage.text, homepage.response.url || requestedUrl);
-    let contactRouteType: ContactRouteType = email ? "email" : "none";
-    let publicContactRoute = email ? `mailto:${email}` : undefined;
+    let contactRouteType: ContactRouteType = homepageEmail ? "email" : "none";
+    let publicContactRoute = homepageEmail ? `mailto:${homepageEmail}` : undefined;
+    let contactEmail = homepageEmail;
     let contactFormProtected = false;
     let protectionReason: string | undefined;
-    if (!email && contactUrl && await robotsAllow(contactUrl)) {
+    if (contactUrl && await robotsAllow(contactUrl)) {
       const contactPage = await fetchText(contactUrl);
-      const contactEmail = firstEmail(contactPage.text);
+      const contactPageEmail = firstEmail(contactPage.text);
       const protection = detectProtectedForm(contactPage.text);
-      if (contactEmail) {
-        contactRouteType = "email";
-        publicContactRoute = `mailto:${contactEmail}`;
-      } else if (/<form\b/i.test(contactPage.text)) {
+      if (/<form\b/i.test(contactPage.text)) {
         contactRouteType = "contact_form";
         publicContactRoute = contactUrl;
+        contactEmail = contactPageEmail;
         contactFormProtected = protection.protected;
         protectionReason = protection.reason;
+      } else if (contactPageEmail) {
+        contactRouteType = "email";
+        publicContactRoute = `mailto:${contactPageEmail}`;
+        contactEmail = contactPageEmail;
       }
     }
 
@@ -384,7 +396,7 @@ export async function qualifyStore(storeUrl: string): Promise<QualificationResul
       verificationEvidence: `${evidence}; contact route ${contactRouteType}${protectionReason ? `; protected by ${protectionReason}` : ""}`,
       publicContactRoute,
       contactRouteType,
-      contactEmail: publicContactRoute?.startsWith("mailto:") ? publicContactRoute.slice(7) : undefined,
+      contactEmail,
       contactFormProtected,
       protectionReason,
       responseTimeMs: Date.now() - startedAt,
