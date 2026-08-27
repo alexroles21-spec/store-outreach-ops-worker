@@ -1,1 +1,248 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0"><title>Contact queue</title><style>body{font:15px system-ui;margin:40px;background:#f7f5ef;color:#263e31}main{max-width:1200px;margin:auto;min-width:0}nav{margin-bottom:24px;overflow-wrap:anywhere}nav a{color:#397457}table{width:100%;border-collapse:collapse;background:white}th,td{padding:12px;border-bottom:1px solid #e8e4db;text-align:left;vertical-align:top}th{font-size:12px;text-transform:uppercase;color:#777}button{border:1px solid #397457;background:white;color:#397457;border-radius:8px;padding:9px 12px;cursor:pointer}a{color:#397457}.review-card{background:white;border:1px solid #e8e4db;border-radius:12px;padding:22px;margin:16px 0}.review-card h2{margin-top:0}.send{display:inline-block;background:#397457;color:white;padding:10px 14px;border-radius:8px;text-decoration:none}.confirm-send{margin-left:8px;background:#fff4d6;border-color:#c38a28;color:#714f0b}.unavailable,.email-only{display:inline-block;color:#8a5a18;background:#fff4d6;padding:10px 14px;border-radius:8px}.review-card dl{display:grid;grid-template-columns:150px minmax(0,1fr);gap:10px;margin-top:20px}.review-card dt{font-weight:700}.review-card dd{margin:0;min-width:0}.field-row{display:flex;align-items:flex-start;gap:8px;min-width:0}.field-value{min-width:0;overflow-wrap:anywhere;word-break:break-word}.field-row .field-value{flex:1}.review-card pre{white-space:pre-wrap;overflow:auto;max-width:100%;box-sizing:border-box;background:#f7f5ef;padding:14px;border-radius:8px}.copy-button{flex:none;white-space:nowrap;padding:7px 9px;font-size:12px}.review-card{overflow:hidden}@media(max-width:640px){body{margin:16px}.review-card{padding:16px}.review-card dl{grid-template-columns:1fr;gap:6px}.field-row{flex-wrap:wrap}.field-row .copy-button{margin-left:0}.field-row-message{display:block}.field-row-message .copy-button{margin-top:8px}}</style></head><body><main><nav><a href="dashboard.html">Run status</a> · <a href="stores.html">Stores</a> · <a href="contact-queue.html">Contact queue</a> · <a href="leads.csv" download>Download CSV</a> · <a href="leads.json" download>Download JSON</a></nav><h1>Contact queue</h1><p>0 qualified lead(s) meet the Contact-plus-email requirement: 0 Contact pages, 0 protected forms. Records missing either requirement are excluded from this send queue and remain available in Stores.</p><h2>Contact pages</h2><p>No Contact pages are waiting.</p><h2>Protected forms requiring manual review</h2><p>No protected forms are waiting for review.</p></main><script>async function copyField(element){const text=element?.textContent||'';try{await navigator.clipboard.writeText(text);const button=element?.parentElement?.querySelector('.copy-button');if(button){const original=button.textContent;button.textContent='Copied';setTimeout(()=>button.textContent=original,1200);}}catch{alert('Copy failed. Please select the text manually.');}}function hideLocally(host){localStorage.setItem('hidden:'+host,'1');const card=document.querySelector('[data-host="'+CSS.escape(host)+'"]');if(card)card.remove();}function markSentLocally(host){if(confirm('Confirm that you completed the form and sent this message. The card will be removed from this device.')){hideLocally(host);alert('Removed from this review queue. Use “Record sent permanently in GitHub” for durable no-repeat tracking.');}}document.querySelectorAll('[data-host]').forEach(card=>{if(localStorage.getItem('hidden:'+card.dataset.host))card.remove();});</script></body></html>
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache"><meta http-equiv="Expires" content="0"><title>Contact queue</title><style>body{font:15px system-ui;margin:40px;background:#f7f5ef;color:#263e31}main{max-width:1200px;margin:auto;min-width:0}nav{margin-bottom:24px;overflow-wrap:anywhere}nav a{color:#397457}table{width:100%;border-collapse:collapse;background:white}th,td{padding:12px;border-bottom:1px solid #e8e4db;text-align:left;vertical-align:top}th{font-size:12px;text-transform:uppercase;color:#777}button{border:1px solid #397457;background:white;color:#397457;border-radius:8px;padding:9px 12px;cursor:pointer}a{color:#397457}.review-card{background:white;border:1px solid #e8e4db;border-radius:12px;padding:22px;margin:16px 0}.review-card h2{margin-top:0}.send{display:inline-block;background:#397457;color:white;padding:10px 14px;border-radius:8px;text-decoration:none}.confirm-send{margin-left:8px;background:#fff4d6;border-color:#c38a28;color:#714f0b}.unavailable,.email-only{display:inline-block;color:#8a5a18;background:#fff4d6;padding:10px 14px;border-radius:8px}.review-card dl{display:grid;grid-template-columns:150px minmax(0,1fr);gap:10px;margin-top:20px}.review-card dt{font-weight:700}.review-card dd{margin:0;min-width:0}.field-row{display:flex;align-items:flex-start;gap:8px;min-width:0}.field-value{min-width:0;overflow-wrap:anywhere;word-break:break-word}.field-row .field-value{flex:1}.review-card pre{white-space:pre-wrap;overflow:auto;max-width:100%;box-sizing:border-box;background:#f7f5ef;padding:14px;border-radius:8px}.copy-button{flex:none;white-space:nowrap;padding:7px 9px;font-size:12px}.review-card{overflow:hidden}@media(max-width:640px){body{margin:16px}.review-card{padding:16px}.review-card dl{grid-template-columns:1fr;gap:6px}.field-row{flex-wrap:wrap}.field-row .copy-button{margin-left:0}.field-row-message{display:block}.field-row-message .copy-button{margin-top:8px}}</style></head><body><main><nav><a href="dashboard.html">Run status</a> · <a href="stores.html">Stores</a> · <a href="contact-queue.html">Contact queue</a> · <a href="leads.csv" download>Download CSV</a> · <a href="leads.json" download>Download JSON</a></nav><h1>Contact queue</h1><p>19 qualified lead(s) meet the Contact-plus-email requirement: 0 Contact pages, 19 protected forms. Records missing either requirement are excluded from this send queue and remain available in Stores.</p><h2>Contact pages</h2><p>No Contact pages are waiting.</p><h2>Protected forms requiring manual review</h2><article class="review-card" data-host="glamscure.myshopify.com"><h2>glamscure official store &amp;ndash; glamscure store</h2><p><strong>Niche:</strong> Cleaning tools · <strong>Region:</strong> CA</p><p><strong>Store:</strong> <a href="https://glamscure.myshopify.com/" target="_blank" rel="noreferrer">https://glamscure.myshopify.com/</a></p><p><strong>Route:</strong> email · <strong>Status:</strong> review</p><p><a class="send" href="https://glamscure.myshopify.com/policies/contact-information" target="_blank" rel="noreferrer">Open Contact page</a> <button class="confirm-send" type="button" onclick="markSentLocally('glamscure.myshopify.com')">I sent it — remove from queue</button> <a href="https://github.com/alexroles21-spec/store-outreach-ops-worker/actions/workflows/mark-review-sent.yml" target="_blank" rel="noreferrer">Record sent permanently in GitHub</a></p><dl><dt>Sender email</dt><dd class="field-value">Alex.roles21@gmail.com</dd><dt>Subject</dt><dd class="field-row"><span class="field-value">Quick question about glamscure official store &amp;ndash; glamscure store’s scaling</span><button type="button" class="copy-button" onclick="copyField(this.previousElementSibling)">Copy subject</button></dd><dt>Message</dt><dd class="field-row field-row-message"><pre class="field-value">Hey glamscure official store &amp;ndash; glamscure store team,
+
+I was just analyzing top-performing e-commerce brands in the Cleaning tools space and came across your store. Great branding and product lineup!
+
+Quick question: Are you currently using AI UGC video ads to test new products and scale globally without the headache of shooting content?
+
+Most Cleaning tools stores are leaving money on the table because traditional content creation is too slow and expensive. With AI UGC, you can generate endless high-converting, viral video ads in seconds—in any language and with any persona.
+
+I put together a quick breakdown of how top brands are using this right now:
+
+👉 Check it out here: https://ugc-gen-ai.carrd.co
+
+Keep crushing it,  
+Growth Team</pre><button type="button" class="copy-button" onclick="copyField(this.previousElementSibling)">Copy message</button></dd></dl></article><article class="review-card" data-host="globemappers.myshopify.com"><h2>Miles Retail – Premium Playing Cards &amp; Magic Tricks in India</h2><p><strong>Niche:</strong> Home decor &amp; lighting · <strong>Region:</strong> CA</p><p><strong>Store:</strong> <a href="https://globemappers.myshopify.com/" target="_blank" rel="noreferrer">https://globemappers.myshopify.com/</a></p><p><strong>Route:</strong> email · <strong>Status:</strong> review</p><p><a class="send" href="https://globemappers.myshopify.com/pages/about-us" target="_blank" rel="noreferrer">Open Contact page</a> <button class="confirm-send" type="button" onclick="markSentLocally('globemappers.myshopify.com')">I sent it — remove from queue</button> <a href="https://github.com/alexroles21-spec/store-outreach-ops-worker/actions/workflows/mark-review-sent.yml" target="_blank" rel="noreferrer">Record sent permanently in GitHub</a></p><dl><dt>Sender email</dt><dd class="field-value">Alex.roles21@gmail.com</dd><dt>Subject</dt><dd class="field-row"><span class="field-value">Quick question about Miles Retail – Premium Playing Cards &amp; Magic Tricks in India’s scaling</span><button type="button" class="copy-button" onclick="copyField(this.previousElementSibling)">Copy subject</button></dd><dt>Message</dt><dd class="field-row field-row-message"><pre class="field-value">Hey Miles Retail – Premium Playing Cards &amp; Magic Tricks in India team,
+
+I was just analyzing top-performing e-commerce brands in the Home decor &amp; lighting space and came across your store. Great branding and product lineup!
+
+Quick question: Are you currently using AI UGC video ads to test new products and scale globally without the headache of shooting content?
+
+Most Home decor &amp; lighting stores are leaving money on the table because traditional content creation is too slow and expensive. With AI UGC, you can generate endless high-converting, viral video ads in seconds—in any language and with any persona.
+
+I put together a quick breakdown of how top brands are using this right now:
+
+👉 Check it out here: https://ugc-gen-ai.carrd.co
+
+Keep crushing it,  
+Growth Team</pre><button type="button" class="copy-button" onclick="copyField(this.previousElementSibling)">Copy message</button></dd></dl></article><article class="review-card" data-host="glyn-macey-studio.myshopify.com"><h2>Glyn Macey Studio</h2><p><strong>Niche:</strong> Home decor &amp; lighting · <strong>Region:</strong> US</p><p><strong>Store:</strong> <a href="https://glyn-macey-studio.myshopify.com/" target="_blank" rel="noreferrer">https://glyn-macey-studio.myshopify.com/</a></p><p><strong>Route:</strong> email · <strong>Status:</strong> review</p><p><a class="send" href="https://glyn-macey-studio.myshopify.com/pages/get-in-touch" target="_blank" rel="noreferrer">Open Contact page</a> <button class="confirm-send" type="button" onclick="markSentLocally('glyn-macey-studio.myshopify.com')">I sent it — remove from queue</button> <a href="https://github.com/alexroles21-spec/store-outreach-ops-worker/actions/workflows/mark-review-sent.yml" target="_blank" rel="noreferrer">Record sent permanently in GitHub</a></p><dl><dt>Sender email</dt><dd class="field-value">Alex.roles21@gmail.com</dd><dt>Subject</dt><dd class="field-row"><span class="field-value">Quick question about Glyn Macey Studio’s scaling</span><button type="button" class="copy-button" onclick="copyField(this.previousElementSibling)">Copy subject</button></dd><dt>Message</dt><dd class="field-row field-row-message"><pre class="field-value">Hey Glyn Macey Studio team,
+
+I was just analyzing top-performing e-commerce brands in the Home decor &amp; lighting space and came across your store. Great branding and product lineup!
+
+Quick question: Are you currently using AI UGC video ads to test new products and scale globally without the headache of shooting content?
+
+Most Home decor &amp; lighting stores are leaving money on the table because traditional content creation is too slow and expensive. With AI UGC, you can generate endless high-converting, viral video ads in seconds—in any language and with any persona.
+
+I put together a quick breakdown of how top brands are using this right now:
+
+👉 Check it out here: https://ugc-gen-ai.carrd.co
+
+Keep crushing it,  
+Growth Team</pre><button type="button" class="copy-button" onclick="copyField(this.previousElementSibling)">Copy message</button></dd></dl></article><article class="review-card" data-host="gnat-and-bee.myshopify.com"><h2>Gnat and Bee Shop Home Page</h2><p><strong>Niche:</strong> Home decor &amp; lighting · <strong>Region:</strong> CA</p><p><strong>Store:</strong> <a href="https://gnat-and-bee.myshopify.com/" target="_blank" rel="noreferrer">https://gnat-and-bee.myshopify.com/</a></p><p><strong>Route:</strong> email · <strong>Status:</strong> review</p><p><a class="send" href="https://gnat-and-bee.myshopify.com/pages/contact-us" target="_blank" rel="noreferrer">Open Contact page</a> <button class="confirm-send" type="button" onclick="markSentLocally('gnat-and-bee.myshopify.com')">I sent it — remove from queue</button> <a href="https://github.com/alexroles21-spec/store-outreach-ops-worker/actions/workflows/mark-review-sent.yml" target="_blank" rel="noreferrer">Record sent permanently in GitHub</a></p><dl><dt>Sender email</dt><dd class="field-value">Alex.roles21@gmail.com</dd><dt>Subject</dt><dd class="field-row"><span class="field-value">Quick question about Gnat and Bee Shop Home Page’s scaling</span><button type="button" class="copy-button" onclick="copyField(this.previousElementSibling)">Copy subject</button></dd><dt>Message</dt><dd class="field-row field-row-message"><pre class="field-value">Hey Gnat and Bee Shop Home Page team,
+
+I was just analyzing top-performing e-commerce brands in the Home decor &amp; lighting space and came across your store. Great branding and product lineup!
+
+Quick question: Are you currently using AI UGC video ads to test new products and scale globally without the headache of shooting content?
+
+Most Home decor &amp; lighting stores are leaving money on the table because traditional content creation is too slow and expensive. With AI UGC, you can generate endless high-converting, viral video ads in seconds—in any language and with any persona.
+
+I put together a quick breakdown of how top brands are using this right now:
+
+👉 Check it out here: https://ugc-gen-ai.carrd.co
+
+Keep crushing it,  
+Growth Team</pre><button type="button" class="copy-button" onclick="copyField(this.previousElementSibling)">Copy message</button></dd></dl></article><article class="review-card" data-host="gold-rush-diamonds-boutique.myshopify.com"><h2>Gold Rush Diamonds &amp; Boutique &amp;ndash; Gold Rush Diamonds &amp; Boutique</h2><p><strong>Niche:</strong> Home decor &amp; lighting · <strong>Region:</strong> US</p><p><strong>Store:</strong> <a href="https://gold-rush-diamonds-boutique.myshopify.com/" target="_blank" rel="noreferrer">https://gold-rush-diamonds-boutique.myshopify.com/</a></p><p><strong>Route:</strong> email · <strong>Status:</strong> review</p><p><a class="send" href="https://gold-rush-diamonds-boutique.myshopify.com/pages/about-us" target="_blank" rel="noreferrer">Open Contact page</a> <button class="confirm-send" type="button" onclick="markSentLocally('gold-rush-diamonds-boutique.myshopify.com')">I sent it — remove from queue</button> <a href="https://github.com/alexroles21-spec/store-outreach-ops-worker/actions/workflows/mark-review-sent.yml" target="_blank" rel="noreferrer">Record sent permanently in GitHub</a></p><dl><dt>Sender email</dt><dd class="field-value">Alex.roles21@gmail.com</dd><dt>Subject</dt><dd class="field-row"><span class="field-value">Quick question about Gold Rush Diamonds &amp; Boutique &amp;ndash; Gold Rush Diamonds &amp; Boutique’s scaling</span><button type="button" class="copy-button" onclick="copyField(this.previousElementSibling)">Copy subject</button></dd><dt>Message</dt><dd class="field-row field-row-message"><pre class="field-value">Hey Gold Rush Diamonds &amp; Boutique &amp;ndash; Gold Rush Diamonds &amp; Boutique team,
+
+I was just analyzing top-performing e-commerce brands in the Home decor &amp; lighting space and came across your store. Great branding and product lineup!
+
+Quick question: Are you currently using AI UGC video ads to test new products and scale globally without the headache of shooting content?
+
+Most Home decor &amp; lighting stores are leaving money on the table because traditional content creation is too slow and expensive. With AI UGC, you can generate endless high-converting, viral video ads in seconds—in any language and with any persona.
+
+I put together a quick breakdown of how top brands are using this right now:
+
+👉 Check it out here: https://ugc-gen-ai.carrd.co
+
+Keep crushing it,  
+Growth Team</pre><button type="button" class="copy-button" onclick="copyField(this.previousElementSibling)">Copy message</button></dd></dl></article><article class="review-card" data-host="mac-amc.myshopify.com"><h2>MAC | AMC &amp;ndash; Mineralogical Association of Canada</h2><p><strong>Niche:</strong> Cleaning tools · <strong>Region:</strong> CA</p><p><strong>Store:</strong> <a href="https://mac-amc.myshopify.com/en-us" target="_blank" rel="noreferrer">https://mac-amc.myshopify.com/en-us</a></p><p><strong>Route:</strong> email · <strong>Status:</strong> review</p><p><a class="send" href="https://mac-amc.myshopify.com/en-us/pages/contact" target="_blank" rel="noreferrer">Open Contact page</a> <button class="confirm-send" type="button" onclick="markSentLocally('mac-amc.myshopify.com')">I sent it — remove from queue</button> <a href="https://github.com/alexroles21-spec/store-outreach-ops-worker/actions/workflows/mark-review-sent.yml" target="_blank" rel="noreferrer">Record sent permanently in GitHub</a></p><dl><dt>Sender email</dt><dd class="field-value">Alex.roles21@gmail.com</dd><dt>Subject</dt><dd class="field-row"><span class="field-value">Quick question about MAC | AMC &amp;ndash; Mineralogical Association of Canada’s scaling</span><button type="button" class="copy-button" onclick="copyField(this.previousElementSibling)">Copy subject</button></dd><dt>Message</dt><dd class="field-row field-row-message"><pre class="field-value">Hey MAC | AMC &amp;ndash; Mineralogical Association of Canada team,
+
+I was just analyzing top-performing e-commerce brands in the Cleaning tools space and came across your store. Great branding and product lineup!
+
+Quick question: Are you currently using AI UGC video ads to test new products and scale globally without the headache of shooting content?
+
+Most Cleaning tools stores are leaving money on the table because traditional content creation is too slow and expensive. With AI UGC, you can generate endless high-converting, viral video ads in seconds—in any language and with any persona.
+
+I put together a quick breakdown of how top brands are using this right now:
+
+👉 Check it out here: https://ugc-gen-ai.carrd.co
+
+Keep crushing it,  
+Growth Team</pre><button type="button" class="copy-button" onclick="copyField(this.previousElementSibling)">Copy message</button></dd></dl></article><article class="review-card" data-host="made-by-mo-nae.myshopify.com"><h2>Made By Mo-nae&#39; &amp;ndash; Made By Mo-nae&amp;#39;</h2><p><strong>Niche:</strong> Skincare &amp; anti-aging · <strong>Region:</strong> CA</p><p><strong>Store:</strong> <a href="https://made-by-mo-nae.myshopify.com/" target="_blank" rel="noreferrer">https://made-by-mo-nae.myshopify.com/</a></p><p><strong>Route:</strong> email · <strong>Status:</strong> review</p><p><a class="send" href="https://made-by-mo-nae.myshopify.com/pages/contact-us" target="_blank" rel="noreferrer">Open Contact page</a> <button class="confirm-send" type="button" onclick="markSentLocally('made-by-mo-nae.myshopify.com')">I sent it — remove from queue</button> <a href="https://github.com/alexroles21-spec/store-outreach-ops-worker/actions/workflows/mark-review-sent.yml" target="_blank" rel="noreferrer">Record sent permanently in GitHub</a></p><dl><dt>Sender email</dt><dd class="field-value">Alex.roles21@gmail.com</dd><dt>Subject</dt><dd class="field-row"><span class="field-value">Quick question about Made By Mo-nae&#39; &amp;ndash; Made By Mo-nae&amp;#39;’s scaling</span><button type="button" class="copy-button" onclick="copyField(this.previousElementSibling)">Copy subject</button></dd><dt>Message</dt><dd class="field-row field-row-message"><pre class="field-value">Hey Made By Mo-nae&#39; &amp;ndash; Made By Mo-nae&amp;#39; team,
+
+I was just analyzing top-performing e-commerce brands in the Skincare &amp; anti-aging space and came across your store. Great branding and product lineup!
+
+Quick question: Are you currently using AI UGC video ads to test new products and scale globally without the headache of shooting content?
+
+Most Skincare &amp; anti-aging stores are leaving money on the table because traditional content creation is too slow and expensive. With AI UGC, you can generate endless high-converting, viral video ads in seconds—in any language and with any persona.
+
+I put together a quick breakdown of how top brands are using this right now:
+
+👉 Check it out here: https://ugc-gen-ai.carrd.co
+
+Keep crushing it,  
+Growth Team</pre><button type="button" class="copy-button" onclick="copyField(this.previousElementSibling)">Copy message</button></dd></dl></article><article class="review-card" data-host="madebyemily.myshopify.com"><h2>Petal Bliss &amp;ndash; Daisy Petal Bliss</h2><p><strong>Niche:</strong> Home decor &amp; lighting · <strong>Region:</strong> US</p><p><strong>Store:</strong> <a href="https://madebyemily.myshopify.com/" target="_blank" rel="noreferrer">https://madebyemily.myshopify.com/</a></p><p><strong>Route:</strong> email · <strong>Status:</strong> review</p><p><a class="send" href="https://madebyemily.myshopify.com/pages/about" target="_blank" rel="noreferrer">Open Contact page</a> <button class="confirm-send" type="button" onclick="markSentLocally('madebyemily.myshopify.com')">I sent it — remove from queue</button> <a href="https://github.com/alexroles21-spec/store-outreach-ops-worker/actions/workflows/mark-review-sent.yml" target="_blank" rel="noreferrer">Record sent permanently in GitHub</a></p><dl><dt>Sender email</dt><dd class="field-value">Alex.roles21@gmail.com</dd><dt>Subject</dt><dd class="field-row"><span class="field-value">Quick question about Petal Bliss &amp;ndash; Daisy Petal Bliss’s scaling</span><button type="button" class="copy-button" onclick="copyField(this.previousElementSibling)">Copy subject</button></dd><dt>Message</dt><dd class="field-row field-row-message"><pre class="field-value">Hey Petal Bliss &amp;ndash; Daisy Petal Bliss team,
+
+I was just analyzing top-performing e-commerce brands in the Home decor &amp; lighting space and came across your store. Great branding and product lineup!
+
+Quick question: Are you currently using AI UGC video ads to test new products and scale globally without the headache of shooting content?
+
+Most Home decor &amp; lighting stores are leaving money on the table because traditional content creation is too slow and expensive. With AI UGC, you can generate endless high-converting, viral video ads in seconds—in any language and with any persona.
+
+I put together a quick breakdown of how top brands are using this right now:
+
+👉 Check it out here: https://ugc-gen-ai.carrd.co
+
+Keep crushing it,  
+Growth Team</pre><button type="button" class="copy-button" onclick="copyField(this.previousElementSibling)">Copy message</button></dd></dl></article><article class="review-card" data-host="madebymija.myshopify.com"><h2>Made By Mija</h2><p><strong>Niche:</strong> Cleaning tools · <strong>Region:</strong> CA</p><p><strong>Store:</strong> <a href="https://madebymija.myshopify.com/" target="_blank" rel="noreferrer">https://madebymija.myshopify.com/</a></p><p><strong>Route:</strong> email · <strong>Status:</strong> review</p><p><a class="send" href="https://madebymija.myshopify.com/pages/shipping-returns" target="_blank" rel="noreferrer">Open Contact page</a> <button class="confirm-send" type="button" onclick="markSentLocally('madebymija.myshopify.com')">I sent it — remove from queue</button> <a href="https://github.com/alexroles21-spec/store-outreach-ops-worker/actions/workflows/mark-review-sent.yml" target="_blank" rel="noreferrer">Record sent permanently in GitHub</a></p><dl><dt>Sender email</dt><dd class="field-value">Alex.roles21@gmail.com</dd><dt>Subject</dt><dd class="field-row"><span class="field-value">Quick question about Made By Mija’s scaling</span><button type="button" class="copy-button" onclick="copyField(this.previousElementSibling)">Copy subject</button></dd><dt>Message</dt><dd class="field-row field-row-message"><pre class="field-value">Hey Made By Mija team,
+
+I was just analyzing top-performing e-commerce brands in the Cleaning tools space and came across your store. Great branding and product lineup!
+
+Quick question: Are you currently using AI UGC video ads to test new products and scale globally without the headache of shooting content?
+
+Most Cleaning tools stores are leaving money on the table because traditional content creation is too slow and expensive. With AI UGC, you can generate endless high-converting, viral video ads in seconds—in any language and with any persona.
+
+I put together a quick breakdown of how top brands are using this right now:
+
+👉 Check it out here: https://ugc-gen-ai.carrd.co
+
+Keep crushing it,  
+Growth Team</pre><button type="button" class="copy-button" onclick="copyField(this.previousElementSibling)">Copy message</button></dd></dl></article><article class="review-card" data-host="madurasherbals.myshopify.com"><h2>Maduras Herbals &amp;ndash; Madurasherbals</h2><p><strong>Niche:</strong> Skincare &amp; anti-aging · <strong>Region:</strong> US</p><p><strong>Store:</strong> <a href="https://madurasherbals.myshopify.com/" target="_blank" rel="noreferrer">https://madurasherbals.myshopify.com/</a></p><p><strong>Route:</strong> email · <strong>Status:</strong> review</p><p><a class="send" href="https://madurasherbals.myshopify.com/pages/contact" target="_blank" rel="noreferrer">Open Contact page</a> <button class="confirm-send" type="button" onclick="markSentLocally('madurasherbals.myshopify.com')">I sent it — remove from queue</button> <a href="https://github.com/alexroles21-spec/store-outreach-ops-worker/actions/workflows/mark-review-sent.yml" target="_blank" rel="noreferrer">Record sent permanently in GitHub</a></p><dl><dt>Sender email</dt><dd class="field-value">Alex.roles21@gmail.com</dd><dt>Subject</dt><dd class="field-row"><span class="field-value">Quick question about Maduras Herbals &amp;ndash; Madurasherbals’s scaling</span><button type="button" class="copy-button" onclick="copyField(this.previousElementSibling)">Copy subject</button></dd><dt>Message</dt><dd class="field-row field-row-message"><pre class="field-value">Hey Maduras Herbals &amp;ndash; Madurasherbals team,
+
+I was just analyzing top-performing e-commerce brands in the Skincare &amp; anti-aging space and came across your store. Great branding and product lineup!
+
+Quick question: Are you currently using AI UGC video ads to test new products and scale globally without the headache of shooting content?
+
+Most Skincare &amp; anti-aging stores are leaving money on the table because traditional content creation is too slow and expensive. With AI UGC, you can generate endless high-converting, viral video ads in seconds—in any language and with any persona.
+
+I put together a quick breakdown of how top brands are using this right now:
+
+👉 Check it out here: https://ugc-gen-ai.carrd.co
+
+Keep crushing it,  
+Growth Team</pre><button type="button" class="copy-button" onclick="copyField(this.previousElementSibling)">Copy message</button></dd></dl></article><article class="review-card" data-host="magnolia-pearl-clothing.myshopify.com"><h2>MAGNOLIA PEARL - OFFICIAL SITE &amp;ndash; Magnolia Pearl Clothing</h2><p><strong>Niche:</strong> Hair care · <strong>Region:</strong> AU</p><p><strong>Store:</strong> <a href="https://magnolia-pearl-clothing.myshopify.com/" target="_blank" rel="noreferrer">https://magnolia-pearl-clothing.myshopify.com/</a></p><p><strong>Route:</strong> email · <strong>Status:</strong> review</p><p><a class="send" href="https://magnolia-pearl-clothing.myshopify.com/pages/contact-us" target="_blank" rel="noreferrer">Open Contact page</a> <button class="confirm-send" type="button" onclick="markSentLocally('magnolia-pearl-clothing.myshopify.com')">I sent it — remove from queue</button> <a href="https://github.com/alexroles21-spec/store-outreach-ops-worker/actions/workflows/mark-review-sent.yml" target="_blank" rel="noreferrer">Record sent permanently in GitHub</a></p><dl><dt>Sender email</dt><dd class="field-value">Alex.roles21@gmail.com</dd><dt>Subject</dt><dd class="field-row"><span class="field-value">Quick question about MAGNOLIA PEARL - OFFICIAL SITE &amp;ndash; Magnolia Pearl Clothing’s scaling</span><button type="button" class="copy-button" onclick="copyField(this.previousElementSibling)">Copy subject</button></dd><dt>Message</dt><dd class="field-row field-row-message"><pre class="field-value">Hey MAGNOLIA PEARL - OFFICIAL SITE &amp;ndash; Magnolia Pearl Clothing team,
+
+I was just analyzing top-performing e-commerce brands in the Hair care space and came across your store. Great branding and product lineup!
+
+Quick question: Are you currently using AI UGC video ads to test new products and scale globally without the headache of shooting content?
+
+Most Hair care stores are leaving money on the table because traditional content creation is too slow and expensive. With AI UGC, you can generate endless high-converting, viral video ads in seconds—in any language and with any persona.
+
+I put together a quick breakdown of how top brands are using this right now:
+
+👉 Check it out here: https://ugc-gen-ai.carrd.co
+
+Keep crushing it,  
+Growth Team</pre><button type="button" class="copy-button" onclick="copyField(this.previousElementSibling)">Copy message</button></dd></dl></article><article class="review-card" data-host="magoes.myshopify.com"><h2>Shop in United States and Canada, US, CA | Online Shopping, Best Place &amp;ndash; MAGOES</h2><p><strong>Niche:</strong> Pet supplies · <strong>Region:</strong> CA</p><p><strong>Store:</strong> <a href="https://magoes.myshopify.com/" target="_blank" rel="noreferrer">https://magoes.myshopify.com/</a></p><p><strong>Route:</strong> email · <strong>Status:</strong> review</p><p><a class="send" href="https://magoes.myshopify.com/pages/contact-us" target="_blank" rel="noreferrer">Open Contact page</a> <button class="confirm-send" type="button" onclick="markSentLocally('magoes.myshopify.com')">I sent it — remove from queue</button> <a href="https://github.com/alexroles21-spec/store-outreach-ops-worker/actions/workflows/mark-review-sent.yml" target="_blank" rel="noreferrer">Record sent permanently in GitHub</a></p><dl><dt>Sender email</dt><dd class="field-value">Alex.roles21@gmail.com</dd><dt>Subject</dt><dd class="field-row"><span class="field-value">Quick question about Shop in United States and Canada, US, CA | Online Shopping, Best Place &amp;ndash; MAGOES’s scaling</span><button type="button" class="copy-button" onclick="copyField(this.previousElementSibling)">Copy subject</button></dd><dt>Message</dt><dd class="field-row field-row-message"><pre class="field-value">Hey Shop in United States and Canada, US, CA | Online Shopping, Best Place &amp;ndash; MAGOES team,
+
+I was just analyzing top-performing e-commerce brands in the Pet supplies space and came across your store. Great branding and product lineup!
+
+Quick question: Are you currently using AI UGC video ads to test new products and scale globally without the headache of shooting content?
+
+Most Pet supplies stores are leaving money on the table because traditional content creation is too slow and expensive. With AI UGC, you can generate endless high-converting, viral video ads in seconds—in any language and with any persona.
+
+I put together a quick breakdown of how top brands are using this right now:
+
+👉 Check it out here: https://ugc-gen-ai.carrd.co
+
+Keep crushing it,  
+Growth Team</pre><button type="button" class="copy-button" onclick="copyField(this.previousElementSibling)">Copy message</button></dd></dl></article><article class="review-card" data-host="maiabergman.myshopify.com"><h2>Maia Bergman &amp;ndash; maiabergman</h2><p><strong>Niche:</strong> Home decor &amp; lighting · <strong>Region:</strong> AU</p><p><strong>Store:</strong> <a href="https://maiabergman.myshopify.com/" target="_blank" rel="noreferrer">https://maiabergman.myshopify.com/</a></p><p><strong>Route:</strong> email · <strong>Status:</strong> review</p><p><a class="send" href="https://maiabergman.myshopify.com/pages/about" target="_blank" rel="noreferrer">Open Contact page</a> <button class="confirm-send" type="button" onclick="markSentLocally('maiabergman.myshopify.com')">I sent it — remove from queue</button> <a href="https://github.com/alexroles21-spec/store-outreach-ops-worker/actions/workflows/mark-review-sent.yml" target="_blank" rel="noreferrer">Record sent permanently in GitHub</a></p><dl><dt>Sender email</dt><dd class="field-value">Alex.roles21@gmail.com</dd><dt>Subject</dt><dd class="field-row"><span class="field-value">Quick question about Maia Bergman &amp;ndash; maiabergman’s scaling</span><button type="button" class="copy-button" onclick="copyField(this.previousElementSibling)">Copy subject</button></dd><dt>Message</dt><dd class="field-row field-row-message"><pre class="field-value">Hey Maia Bergman &amp;ndash; maiabergman team,
+
+I was just analyzing top-performing e-commerce brands in the Home decor &amp; lighting space and came across your store. Great branding and product lineup!
+
+Quick question: Are you currently using AI UGC video ads to test new products and scale globally without the headache of shooting content?
+
+Most Home decor &amp; lighting stores are leaving money on the table because traditional content creation is too slow and expensive. With AI UGC, you can generate endless high-converting, viral video ads in seconds—in any language and with any persona.
+
+I put together a quick breakdown of how top brands are using this right now:
+
+👉 Check it out here: https://ugc-gen-ai.carrd.co
+
+Keep crushing it,  
+Growth Team</pre><button type="button" class="copy-button" onclick="copyField(this.previousElementSibling)">Copy message</button></dd></dl></article><article class="review-card" data-host="make-upstudio-nl.myshopify.com"><h2>Make-up Studio.nl | Webshop for make-up products</h2><p><strong>Niche:</strong> Hair care · <strong>Region:</strong> US</p><p><strong>Store:</strong> <a href="https://make-upstudio-nl.myshopify.com/en-in" target="_blank" rel="noreferrer">https://make-upstudio-nl.myshopify.com/en-in</a></p><p><strong>Route:</strong> email · <strong>Status:</strong> review</p><p><a class="send" href="https://make-upstudio-nl.myshopify.com/en-in/pages/contact" target="_blank" rel="noreferrer">Open Contact page</a> <button class="confirm-send" type="button" onclick="markSentLocally('make-upstudio-nl.myshopify.com')">I sent it — remove from queue</button> <a href="https://github.com/alexroles21-spec/store-outreach-ops-worker/actions/workflows/mark-review-sent.yml" target="_blank" rel="noreferrer">Record sent permanently in GitHub</a></p><dl><dt>Sender email</dt><dd class="field-value">Alex.roles21@gmail.com</dd><dt>Subject</dt><dd class="field-row"><span class="field-value">Quick question about Make-up Studio.nl | Webshop for make-up products’s scaling</span><button type="button" class="copy-button" onclick="copyField(this.previousElementSibling)">Copy subject</button></dd><dt>Message</dt><dd class="field-row field-row-message"><pre class="field-value">Hey Make-up Studio.nl | Webshop for make-up products team,
+
+I was just analyzing top-performing e-commerce brands in the Hair care space and came across your store. Great branding and product lineup!
+
+Quick question: Are you currently using AI UGC video ads to test new products and scale globally without the headache of shooting content?
+
+Most Hair care stores are leaving money on the table because traditional content creation is too slow and expensive. With AI UGC, you can generate endless high-converting, viral video ads in seconds—in any language and with any persona.
+
+I put together a quick breakdown of how top brands are using this right now:
+
+👉 Check it out here: https://ugc-gen-ai.carrd.co
+
+Keep crushing it,  
+Growth Team</pre><button type="button" class="copy-button" onclick="copyField(this.previousElementSibling)">Copy message</button></dd></dl></article><article class="review-card" data-host="malmborgs-garden-center.myshopify.com"><h2>Malmborg&amp;#39;s Garden Center</h2><p><strong>Niche:</strong> Home decor &amp; lighting · <strong>Region:</strong> US</p><p><strong>Store:</strong> <a href="https://malmborgs-garden-center.myshopify.com/" target="_blank" rel="noreferrer">https://malmborgs-garden-center.myshopify.com/</a></p><p><strong>Route:</strong> email · <strong>Status:</strong> review</p><p><a class="send" href="https://malmborgs-garden-center.myshopify.com/pages/contact-us" target="_blank" rel="noreferrer">Open Contact page</a> <button class="confirm-send" type="button" onclick="markSentLocally('malmborgs-garden-center.myshopify.com')">I sent it — remove from queue</button> <a href="https://github.com/alexroles21-spec/store-outreach-ops-worker/actions/workflows/mark-review-sent.yml" target="_blank" rel="noreferrer">Record sent permanently in GitHub</a></p><dl><dt>Sender email</dt><dd class="field-value">Alex.roles21@gmail.com</dd><dt>Subject</dt><dd class="field-row"><span class="field-value">Quick question about Malmborg&amp;#39;s Garden Center’s scaling</span><button type="button" class="copy-button" onclick="copyField(this.previousElementSibling)">Copy subject</button></dd><dt>Message</dt><dd class="field-row field-row-message"><pre class="field-value">Hey Malmborg&amp;#39;s Garden Center team,
+
+I was just analyzing top-performing e-commerce brands in the Home decor &amp; lighting space and came across your store. Great branding and product lineup!
+
+Quick question: Are you currently using AI UGC video ads to test new products and scale globally without the headache of shooting content?
+
+Most Home decor &amp; lighting stores are leaving money on the table because traditional content creation is too slow and expensive. With AI UGC, you can generate endless high-converting, viral video ads in seconds—in any language and with any persona.
+
+I put together a quick breakdown of how top brands are using this right now:
+
+👉 Check it out here: https://ugc-gen-ai.carrd.co
+
+Keep crushing it,  
+Growth Team</pre><button type="button" class="copy-button" onclick="copyField(this.previousElementSibling)">Copy message</button></dd></dl></article><article class="review-card" data-host="man-in-the-moon-candies.myshopify.com"><h2>Man In the Moon Candies</h2><p><strong>Niche:</strong> Home decor &amp; lighting · <strong>Region:</strong> US</p><p><strong>Store:</strong> <a href="https://man-in-the-moon-candies.myshopify.com/" target="_blank" rel="noreferrer">https://man-in-the-moon-candies.myshopify.com/</a></p><p><strong>Route:</strong> email · <strong>Status:</strong> review</p><p><a class="send" href="https://man-in-the-moon-candies.myshopify.com/pages/about-us" target="_blank" rel="noreferrer">Open Contact page</a> <button class="confirm-send" type="button" onclick="markSentLocally('man-in-the-moon-candies.myshopify.com')">I sent it — remove from queue</button> <a href="https://github.com/alexroles21-spec/store-outreach-ops-worker/actions/workflows/mark-review-sent.yml" target="_blank" rel="noreferrer">Record sent permanently in GitHub</a></p><dl><dt>Sender email</dt><dd class="field-value">Alex.roles21@gmail.com</dd><dt>Subject</dt><dd class="field-row"><span class="field-value">Quick question about Man In the Moon Candies’s scaling</span><button type="button" class="copy-button" onclick="copyField(this.previousElementSibling)">Copy subject</button></dd><dt>Message</dt><dd class="field-row field-row-message"><pre class="field-value">Hey Man In the Moon Candies team,
+
+I was just analyzing top-performing e-commerce brands in the Home decor &amp; lighting space and came across your store. Great branding and product lineup!
+
+Quick question: Are you currently using AI UGC video ads to test new products and scale globally without the headache of shooting content?
+
+Most Home decor &amp; lighting stores are leaving money on the table because traditional content creation is too slow and expensive. With AI UGC, you can generate endless high-converting, viral video ads in seconds—in any language and with any persona.
+
+I put together a quick breakdown of how top brands are using this right now:
+
+👉 Check it out here: https://ugc-gen-ai.carrd.co
+
+Keep crushing it,  
+Growth Team</pre><button type="button" class="copy-button" onclick="copyField(this.previousElementSibling)">Copy message</button></dd></dl></article><article class="review-card" data-host="maps-of-mastery-store.myshopify.com"><h2>The Map Store &amp;ndash; Maps of Mastery</h2><p><strong>Niche:</strong> Home decor &amp; lighting · <strong>Region:</strong> US</p><p><strong>Store:</strong> <a href="https://maps-of-mastery-store.myshopify.com/" target="_blank" rel="noreferrer">https://maps-of-mastery-store.myshopify.com/</a></p><p><strong>Route:</strong> email · <strong>Status:</strong> review</p><p><a class="send" href="https://maps-of-mastery-store.myshopify.com/pages/about-us" target="_blank" rel="noreferrer">Open Contact page</a> <button class="confirm-send" type="button" onclick="markSentLocally('maps-of-mastery-store.myshopify.com')">I sent it — remove from queue</button> <a href="https://github.com/alexroles21-spec/store-outreach-ops-worker/actions/workflows/mark-review-sent.yml" target="_blank" rel="noreferrer">Record sent permanently in GitHub</a></p><dl><dt>Sender email</dt><dd class="field-value">Alex.roles21@gmail.com</dd><dt>Subject</dt><dd class="field-row"><span class="field-value">Quick question about The Map Store &amp;ndash; Maps of Mastery’s scaling</span><button type="button" class="copy-button" onclick="copyField(this.previousElementSibling)">Copy subject</button></dd><dt>Message</dt><dd class="field-row field-row-message"><pre class="field-value">Hey The Map Store &amp;ndash; Maps of Mastery team,
+
+I was just analyzing top-performing e-commerce brands in the Home decor &amp; lighting space and came across your store. Great branding and product lineup!
+
+Quick question: Are you currently using AI UGC video ads to test new products and scale globally without the headache of shooting content?
+
+Most Home decor &amp; lighting stores are leaving money on the table because traditional content creation is too slow and expensive. With AI UGC, you can generate endless high-converting, viral video ads in seconds—in any language and with any persona.
+
+I put together a quick breakdown of how top brands are using this right now:
+
+👉 Check it out here: https://ugc-gen-ai.carrd.co
+
+Keep crushing it,  
+Growth Team</pre><button type="button" class="copy-button" onclick="copyField(this.previousElementSibling)">Copy message</button></dd></dl></article><article class="review-card" data-host="marietta-makery.myshopify.com"><h2>Marietta Makery</h2><p><strong>Niche:</strong> Home decor &amp; lighting · <strong>Region:</strong> US</p><p><strong>Store:</strong> <a href="https://marietta-makery.myshopify.com/" target="_blank" rel="noreferrer">https://marietta-makery.myshopify.com/</a></p><p><strong>Route:</strong> email · <strong>Status:</strong> review</p><p><a class="send" href="https://marietta-makery.myshopify.com/pages/contact" target="_blank" rel="noreferrer">Open Contact page</a> <button class="confirm-send" type="button" onclick="markSentLocally('marietta-makery.myshopify.com')">I sent it — remove from queue</button> <a href="https://github.com/alexroles21-spec/store-outreach-ops-worker/actions/workflows/mark-review-sent.yml" target="_blank" rel="noreferrer">Record sent permanently in GitHub</a></p><dl><dt>Sender email</dt><dd class="field-value">Alex.roles21@gmail.com</dd><dt>Subject</dt><dd class="field-row"><span class="field-value">Quick question about Marietta Makery’s scaling</span><button type="button" class="copy-button" onclick="copyField(this.previousElementSibling)">Copy subject</button></dd><dt>Message</dt><dd class="field-row field-row-message"><pre class="field-value">Hey Marietta Makery team,
+
+I was just analyzing top-performing e-commerce brands in the Home decor &amp; lighting space and came across your store. Great branding and product lineup!
+
+Quick question: Are you currently using AI UGC video ads to test new products and scale globally without the headache of shooting content?
+
+Most Home decor &amp; lighting stores are leaving money on the table because traditional content creation is too slow and expensive. With AI UGC, you can generate endless high-converting, viral video ads in seconds—in any language and with any persona.
+
+I put together a quick breakdown of how top brands are using this right now:
+
+👉 Check it out here: https://ugc-gen-ai.carrd.co
+
+Keep crushing it,  
+Growth Team</pre><button type="button" class="copy-button" onclick="copyField(this.previousElementSibling)">Copy message</button></dd></dl></article><article class="review-card" data-host="marinamiracle-eng.myshopify.com"><h2>Marina Miracle - Organic Skincare Products from Norway</h2><p><strong>Niche:</strong> Skincare &amp; anti-aging · <strong>Region:</strong> UK</p><p><strong>Store:</strong> <a href="https://marinamiracle-eng.myshopify.com/" target="_blank" rel="noreferrer">https://marinamiracle-eng.myshopify.com/</a></p><p><strong>Route:</strong> email · <strong>Status:</strong> review</p><p><a class="send" href="https://marinamiracle-eng.myshopify.com/pages/about-us" target="_blank" rel="noreferrer">Open Contact page</a> <button class="confirm-send" type="button" onclick="markSentLocally('marinamiracle-eng.myshopify.com')">I sent it — remove from queue</button> <a href="https://github.com/alexroles21-spec/store-outreach-ops-worker/actions/workflows/mark-review-sent.yml" target="_blank" rel="noreferrer">Record sent permanently in GitHub</a></p><dl><dt>Sender email</dt><dd class="field-value">Alex.roles21@gmail.com</dd><dt>Subject</dt><dd class="field-row"><span class="field-value">Quick question about Marina Miracle - Organic Skincare Products from Norway’s scaling</span><button type="button" class="copy-button" onclick="copyField(this.previousElementSibling)">Copy subject</button></dd><dt>Message</dt><dd class="field-row field-row-message"><pre class="field-value">Hey Marina Miracle - Organic Skincare Products from Norway team,
+
+I was just analyzing top-performing e-commerce brands in the Skincare &amp; anti-aging space and came across your store. Great branding and product lineup!
+
+Quick question: Are you currently using AI UGC video ads to test new products and scale globally without the headache of shooting content?
+
+Most Skincare &amp; anti-aging stores are leaving money on the table because traditional content creation is too slow and expensive. With AI UGC, you can generate endless high-converting, viral video ads in seconds—in any language and with any persona.
+
+I put together a quick breakdown of how top brands are using this right now:
+
+👉 Check it out here: https://ugc-gen-ai.carrd.co
+
+Keep crushing it,  
+Growth Team</pre><button type="button" class="copy-button" onclick="copyField(this.previousElementSibling)">Copy message</button></dd></dl></article></main><script>async function copyField(element){const text=element?.textContent||'';try{await navigator.clipboard.writeText(text);const button=element?.parentElement?.querySelector('.copy-button');if(button){const original=button.textContent;button.textContent='Copied';setTimeout(()=>button.textContent=original,1200);}}catch{alert('Copy failed. Please select the text manually.');}}function hideLocally(host){localStorage.setItem('hidden:'+host,'1');const card=document.querySelector('[data-host="'+CSS.escape(host)+'"]');if(card)card.remove();}function markSentLocally(host){if(confirm('Confirm that you completed the form and sent this message. The card will be removed from this device.')){hideLocally(host);alert('Removed from this review queue. Use “Record sent permanently in GitHub” for durable no-repeat tracking.');}}document.querySelectorAll('[data-host]').forEach(card=>{if(localStorage.getItem('hidden:'+card.dataset.host))card.remove();});</script></body></html>
