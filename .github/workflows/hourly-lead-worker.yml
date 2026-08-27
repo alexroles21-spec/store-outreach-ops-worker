@@ -1,8 +1,10 @@
 name: Hourly lead worker
 
 on:
+  # GitHub schedule delivery is best-effort; run four checkpoints per hour.
+  # Repository-mode idempotency below ensures only one successful batch per UTC hour.
   schedule:
-    - cron: "0 * * * *"
+    - cron: "0,15,30,45 * * * *"
   workflow_dispatch:
     inputs:
       target_per_run:
@@ -18,6 +20,7 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 concurrency:
   group: hourly-lead-worker
@@ -60,3 +63,13 @@ jobs:
           git add data/
           git diff --cached --quiet || git commit -m "Update hourly lead reports"
           git push
+      - name: Publish refreshed report pages
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          curl --fail --silent --show-error --location --request POST \
+            --url "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/workflows/publish-report-pages.yml/dispatches" \
+            --header "Accept: application/vnd.github+json" \
+            --header "Authorization: Bearer ${GH_TOKEN}" \
+            --header "X-GitHub-Api-Version: 2022-11-28" \
+            --data "{\"ref\":\"${GITHUB_REF_NAME}\"}"

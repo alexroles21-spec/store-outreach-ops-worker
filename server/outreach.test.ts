@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { buildHourlyIdempotencyKey } from "./scheduled";
-import { buildManualReviewDraft, collectGeoCandidates, dedupeCandidates, detectProtectedForm, getContactDisposition, normalizeHost, personalizeMessage, qualifyStore } from "./outreach";
+import { buildManualReviewDraft, collectGeoCandidates, dedupeCandidates, detectLockedStore, detectProtectedForm, getContactDisposition, isPriorityNiche, normalizeHost, personalizeMessage, qualifyStore } from "./outreach";
 
 describe("outreach utilities", () => {
   afterEach(() => vi.unstubAllGlobals());
@@ -14,6 +14,11 @@ describe("outreach utilities", () => {
       "https://www.alpha.myshopify.com/",
       "https://beta.myshopify.com/",
     ]);
+  });
+
+  it("marks password-locked storefronts as inaccessible", () => {
+    expect(detectLockedStore('<html><title>Opening soon</title><body>Shopify store is password protected <input type="password" /></body></html>')).toBe(true);
+    expect(detectLockedStore('<html><title>Shopify Store</title><body>Products and Add to cart</body></html>')).toBe(false);
   });
 
   it("marks common CAPTCHA signals as review-only protection", () => {
@@ -51,6 +56,16 @@ describe("outreach utilities", () => {
     expect(result.responseTimeMs).toBeGreaterThanOrEqual(0);
   });
 
+  it("classifies a password-locked storefront as inactive", async () => {
+    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
+      if (String(input).endsWith("/robots.txt")) return new Response("", { status: 404 });
+      return new Response('<html><title>Opening soon</title><body>Shopify store is password protected <input type="password" /></body></html>', { status: 200 });
+    }));
+    const result = await qualifyStore("https://locked.myshopify.com/");
+    expect(result.verificationStatus).toBe("inactive");
+    expect(result.verificationEvidence).toContain("password-locked");
+  });
+
   it("classifies non-commerce content as failed", async () => {
     vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
       if (String(input).endsWith("/robots.txt")) return new Response("", { status: 404 });
@@ -80,6 +95,12 @@ describe("outreach utilities", () => {
     expect(message.body).not.toContain("[niche]");
     expect(message.senderEmail).toBe("Alex.roles21@gmail.com");
     expect(message.storeUrl).toBe("https://northstar.example");
+  });
+
+  it("recognizes only the requested physical-product niche labels as priority", () => {
+    expect(isPriorityNiche("Skincare & anti-aging")).toBe(true);
+    expect(isPriorityNiche("Pet supplies")).toBe(true);
+    expect(isPriorityNiche("General e-commerce")).toBe(false);
   });
 
   it("routes CAPTCHA forms to review and open email routes to queue", () => {

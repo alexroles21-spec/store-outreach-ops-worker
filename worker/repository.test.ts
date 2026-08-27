@@ -15,6 +15,17 @@ describe("repository dispatcher integration", () => {
     vi.clearAllMocks();
   });
 
+  it("runs at most one completed target batch per UTC hour", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "repo-idempotency-"));
+    process.chdir(dir);
+    mkdirSync(join(dir, "data"), { recursive: true });
+    writeFileSync(join(dir, "data", "runs.json"), JSON.stringify([{ startedAt: "2026-08-27T12:02:00.000Z", qualified: 84 }]));
+    const { hasCompletedTargetThisUtcHour } = await import("./repository");
+    expect(hasCompletedTargetThisUtcHour(JSON.parse(readFileSync(join(dir, "data", "runs.json"), "utf8")), 84, new Date("2026-08-27T12:45:00.000Z"))).toBe(true);
+    expect(hasCompletedTargetThisUtcHour([{ startedAt: "2026-08-27T12:02:00.000Z", qualified: 83 }], 84, new Date("2026-08-27T12:45:00.000Z"))).toBe(false);
+    rmSync(dir, { recursive: true, force: true });
+  });
+
   it("dispatches an opted-in queued lead and persists sent state", async () => {
     const dir = mkdtempSync(join(tmpdir(), "repo-cycle-"));
     const received: string[] = [];
@@ -40,6 +51,8 @@ describe("repository dispatcher integration", () => {
       discoverPublicStoreUrls: vi.fn(async () => ["https://example-store.test"]),
       qualifyStore: vi.fn(async () => ({ storeName: "Example Store", niche: "Electronics", storeUrl: "https://example-store.test", normalizedHost: "example-store.test", region: "US", publicContactRoute: "https://example-store.test/contact", contactEmail: "owner@example-store.test", contactFormProtected: false, verificationStatus: "qualified", verificationEvidence: "HTTP 200", responseTimeMs: 10, protectionReason: undefined })),
       personalizeMessage: vi.fn(() => ({ senderEmail: "sender@example.test", subject: "Subject", body: "Body" })),
+      isPriorityNiche: vi.fn((niche: string) => niche !== "General e-commerce"),
+      isUsableEmail: vi.fn((email?: string) => Boolean(email && !email.endsWith(".png"))),
     }));
     const { runRepositoryCycle } = await import("./repository");
     const run = await runRepositoryCycle(1);
@@ -51,5 +64,33 @@ describe("repository dispatcher integration", () => {
     expect(JSON.parse(received[0]).leadId).toBe(1);
     expect(leads[0].deliveryStatus).toBe("sent");
     expect(leads[0].contactStatus).toBe("sent");
+  });
+
+  it("keeps sent leads in stores but removes them from the contact review report", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "repo-reports-"));
+    process.chdir(dir);
+    mkdirSync(join(dir, "data"), { recursive: true });
+    const { renderPages } = await import("./repository");
+    const base = { id: 1, storeName: "Sent Store", niche: "Beauty", storeUrl: "https://sent-store.test", normalizedHost: "sent-store.test", region: "US", publicContactRoute: "https://sent-store.test/contact", contactEmail: "hello@sent-store.test", contactFormProtected: true, protectionReason: "CAPTCHA", verificationStatus: "qualified", verificationEvidence: "HTTP 200", contactStatus: "sent", deliveryStatus: "sent", discoveredAt: new Date().toISOString(), lastVerifiedAt: new Date().toISOString(), senderEmail: "sender@example.test", subject: "Subject", body: "Body" };
+    renderPages([base as never], []);
+    const stores = readFileSync(join(dir, "data", "stores.html"), "utf8");
+    const review = readFileSync(join(dir, "data", "contact-review.html"), "utf8");
+    rmSync(dir, { recursive: true, force: true });
+    expect(stores).toContain("Sent Store");
+    expect(review).not.toContain("Sent Store");
+  });
+
+  it("includes queued non-CAPTCHA leads in the contact queue", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "repo-ready-contact-"));
+    process.chdir(dir);
+    mkdirSync(join(dir, "data"), { recursive: true });
+    const { renderPages } = await import("./repository");
+    const ready = { id: 2, storeName: "Ready Store", niche: "Home decor & lighting", storeUrl: "https://ready-store.test", normalizedHost: "ready-store.test", region: "CA", publicContactRoute: "mailto:hello@ready-store.test", contactEmail: "hello@ready-store.test", contactFormProtected: false, verificationStatus: "qualified", verificationEvidence: "HTTP 200", contactStatus: "queued", deliveryStatus: "pending", discoveredAt: new Date().toISOString(), lastVerifiedAt: new Date().toISOString(), senderEmail: "sender@example.test", subject: "Subject", body: "Body" };
+    renderPages([ready as never], []);
+    const review = readFileSync(join(dir, "data", "contact-review.html"), "utf8");
+    rmSync(dir, { recursive: true, force: true });
+    expect(review).toContain("Ready Store");
+    expect(review).toContain("Ready contact routes");
+    expect(review).toContain("I sent it — remove from queue");
   });
 });

@@ -11,13 +11,30 @@ const COMMON_CRAWL_COLLECTIONS = "https://index.commoncrawl.org/collinfo.json";
 const USER_AGENT = "StoreOutreachResearch/1.0 (+public-lead-review)";
 const REGIONS = ["US", "CA", "EU", "AU"] as const;
 const NICHE_RULES: Array<[string, string[]]> = [
-  ["Beauty", ["beauty", "skincare", "cosmetic", "makeup", "hair"]],
-  ["Fitness", ["fitness", "gym", "workout", "supplement", "yoga"]],
-  ["Pets", ["pet", "dog", "cat", "animal"]],
-  ["Home", ["home", "decor", "furniture", "kitchen", "living"]],
-  ["Apparel", ["apparel", "clothing", "fashion", "shoe", "jewelry"]],
-  ["Gadgets", ["gadget", "tech", "electronics", "device"]],
+  ["Skincare & anti-aging", ["skincare", "skin care", "anti-aging", "antiaging", "serum", "moisturizer", "retinol"]],
+  ["Hair care", ["hair growth", "hair oil", "haircare", "hair care", "styler", "hair brush", "brushes"]],
+  ["Oral care", ["teeth whitening", "tooth whitening", "oral care", "toothbrush", "dental"]],
+  ["Supplements & vitamins", ["supplement", "vitamin", "probiotic", "collagen", "protein powder"]],
+  ["Makeup & cosmetics", ["beauty", "cosmetic", "cosmetics", "makeup", "foundation", "lipstick"]],
+  ["Nail & eyelash care", ["nail", "eyelash", "lash", "manicure", "pedicure"]],
+  ["Hair removal", ["hair removal", "epilator", "waxing", "laser hair"]],
+  ["Smart home & kitchen", ["smart kitchen", "kitchen", "organizer", "storage", "home gadget"]],
+  ["Cleaning tools", ["cleaning", "mop", "scrub", "vacuum", "laundry"]],
+  ["Home decor & lighting", ["home", "decor", "furniture", "living", "led light", "lighting"]],
+  ["Pet supplies", ["pet", "dog", "cat", "animal", "pet bed", "pet toy"]],
+  ["Fitness & yoga", ["fitness", "gym", "workout", "resistance band", "yoga", "activewear"]],
+  ["Shapewear", ["shapewear", "compression wear", "waist trainer"]],
+  ["Recovery & massage", ["massage", "foam roller", "recovery", "massage gun"]],
+  ["Phone & tech accessories", ["gadget", "tech", "electronics", "device", "phone case", "phone mount", "tech pouch"]],
+  ["Travel organizers", ["travel organizer", "luggage organizer", "packing cube", "travel pouch"]],
+  ["Jewelry & lifestyle accessories", ["apparel", "clothing", "fashion", "shoe", "jewelry", "sunglasses", "watch", "wallet", "handbag"]],
 ];
+
+export const PRIORITY_NICHES = NICHE_RULES.map(([niche]) => niche);
+
+export function isPriorityNiche(niche: string) {
+  return PRIORITY_NICHES.includes(niche);
+}
 
 export type ContactRouteType = "email" | "contact_form" | "none" | "unknown";
 
@@ -93,10 +110,18 @@ function inferRegion(url: string, text: string) {
   return { region: "OTHER", regionConfidence: "low" };
 }
 
+export function isUsableEmail(email?: string) {
+  if (!email) return false;
+  const lower = email.toLowerCase();
+  const extension = lower.split(".").pop() ?? "";
+  const ignoredDomains = ["example.com", "sentry.io", "wixpress.com", "yourdomain.com"];
+  const assetExtensions = new Set(["png", "jpg", "jpeg", "gif", "webp", "svg", "css", "js"]);
+  return !assetExtensions.has(extension) && !ignoredDomains.some(domain => lower.endsWith(`@${domain}`));
+}
+
 function firstEmail(...sources: string[]) {
   const matches = sources.join(" ").match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi) ?? [];
-  const ignored = ["example.com", "sentry.io", "wixpress.com"];
-  return matches.find(email => !ignored.some(domain => email.toLowerCase().endsWith(`@${domain}`)));
+  return matches.find(isUsableEmail);
 }
 
 function findContactLink(html: string, baseUrl: string) {
@@ -110,6 +135,10 @@ function findContactLink(html: string, baseUrl: string) {
     }
   }
   return undefined;
+}
+
+export function detectLockedStore(html: string) {
+  return /(?:shopify|myshopify)[\s\S]{0,180}(?:password protected|enter using password|store is locked|opening soon)|(?:password protected|enter using password|store is locked|opening soon)[\s\S]{0,180}(?:shopify|myshopify)/i.test(html) || /<input[^>]+type=["']password["']/i.test(html) && /(?:store|shopify|password)/i.test(html);
 }
 
 export function detectProtectedForm(html: string) {
@@ -307,16 +336,17 @@ export async function qualifyStore(storeUrl: string): Promise<QualificationResul
     const storeName = (title && title.length > 2 ? title : undefined) || ogTitle || siteName || normalizedHost.split(".")[0].replace(/[-_]/g, " ");
     const region = inferRegion(requestedUrl, body);
     const ecomSignal = /shopify|myshopify|add to cart|shopping cart|products?\b|checkout|application\/ld\+json/i.test(homepage.text);
-    const evidence = `HTTP ${homepage.response.status}; final URL ${homepage.response.url}; e-commerce signal ${ecomSignal ? "detected" : "not detected"}; checked ${new Date().toISOString()}`;
-    if (!homepage.response.ok || !ecomSignal) {
+    const locked = detectLockedStore(homepage.text);
+    const evidence = `HTTP ${homepage.response.status}; final URL ${homepage.response.url}; e-commerce signal ${ecomSignal ? "detected" : "not detected"}; storefront lock ${locked ? "detected" : "not detected"}; checked ${new Date().toISOString()}`;
+    if (locked || !homepage.response.ok || !ecomSignal) {
       return {
         storeUrl: homepage.response.url || requestedUrl,
         normalizedHost,
         storeName,
         niche: inferNiche(body, normalizedHost),
         ...region,
-        verificationStatus: homepage.response.ok ? "failed" : "inactive",
-        verificationEvidence: `${evidence}; response time ${Date.now() - startedAt}ms`,
+        verificationStatus: locked ? "inactive" : homepage.response.ok ? "failed" : "inactive",
+        verificationEvidence: `${evidence}; response time ${Date.now() - startedAt}ms${locked ? "; storefront is password-locked" : ""}`,
         contactRouteType: "none",
         contactFormProtected: false,
         responseTimeMs: Date.now() - startedAt,
@@ -415,6 +445,10 @@ export async function runDiscoveryCycle(targetCount = 84, idempotencyKey?: strin
         const existing = await getLeadByHost(result.normalizedHost);
         if (existing) {
           await addLeadEvent({ leadId: existing.id, runId, eventType: "duplicate", outcome: "skipped", detail: "Normalized hostname already exists" });
+          continue;
+        }
+        if (result.verificationStatus === "qualified" && !isPriorityNiche(result.niche)) {
+          failures += 1;
           continue;
         }
         if (result.verificationStatus === "qualified") qualified += 1;
