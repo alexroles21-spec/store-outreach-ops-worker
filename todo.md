@@ -187,3 +187,5 @@
 - [x] Add a live review landing page route with clear lead cards, prefilled message fields, contact links, durable sent action, and CSV/JSON downloads. (Route `/review` reuses the authenticated Leads UI; repository reports provide static GitHub artifacts and durable sent workflow.)
 - [x] Extend the GitHub Actions job to use the full hourly discovery window and avoid treating a partial source page as a completed 84-store cycle. (Workflow timeout is 60 minutes and candidate backfill is expanded; source exhaustion is still reported honestly.)
 - [x] Publish separate external repository report pages for verified stores and contact-route review, with mobile-friendly links and downloads. (Generated as `stores.html`, `contact-review.html`, `leads.csv`, and `leads.json` in the repository `data/` directory.)
+- [ ] Diagnose and fix the external report URL returning HTTP 400, then verify the two external report pages resolve directly from the published worker output.
+
