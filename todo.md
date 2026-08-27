@@ -190,5 +190,5 @@
 - [x] Redesign only the two external HTML/CSS report pages with modern interactive controls, without modifying server, worker, workflow, scheduling, discovery, or deduplication logic. (Generated modern `stores.html` and `contact-review.html`; current diff contains only report data, pages, and TODO history.)
 
 - [x] Diagnose and fix the external report URL returning HTTP 400, then verify the two external report pages resolve directly from the published worker output. (The missing files are now generated and verified in GitHub after run 33049161529: `stores.html` and `contact-review.html`; private-repository links require GitHub authentication.)
-- [ ] Publish the two report HTML files as rendered external pages so mobile users do not see GitHub source code.
+- [x] Publish the two report HTML files as rendered external pages so mobile users do not see GitHub source code. (GitHub Pages workflow succeeded; `stores.html` and `contact-review.html` both return HTTP 200 as rendered HTML.)
 
