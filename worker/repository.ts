@@ -46,11 +46,11 @@ function csv(value: unknown) {
 }
 
 export function renderPages(leads: RepoLead[], runs: Array<Record<string, unknown>>) {
-  const links = `<nav><a href="dashboard.html">Run status</a> · <a href="stores.html">Stores</a> · <a href="contact-queue.html">Contact queue</a> · <a href="leads.csv" download>Download CSV</a> · <a href="leads.json" download>Download JSON</a></nav>`;
+  const links = `<nav><a href="dashboard.html">Run status</a> · <a href="stores.html">Stores</a> · <a href="email-directory.html">Email directory</a> · <a href="contact-queue.html">Contact queue</a> · <a href="leads.csv" download>Download CSV</a> · <a href="leads.json" download>Download JSON</a></nav>`;
   const reportLeads = leads.map(lead => lead.contactEmail && !isUsableEmail(lead.contactEmail) ? { ...lead, contactEmail: undefined, publicContactRoute: lead.publicContactRoute?.startsWith("mailto:") ? undefined : lead.publicContactRoute, contactRouteType: lead.publicContactRoute?.startsWith("mailto:") ? "none" as const : lead.contactRouteType } : lead);
   const rows = reportLeads.map(lead => `<tr><td>${esc(lead.storeName)}</td><td>${esc(lead.niche)}</td><td>${esc(lead.contactEmail ?? "No support email found")}</td><td>${esc(lead.region)}</td><td><a href="${esc(lead.storeUrl)}" target="_blank" rel="noreferrer">${esc(lead.storeUrl)}</a></td><td>${lead.publicContactRoute ? `<a href="${esc(lead.publicContactRoute)}" target="_blank" rel="noreferrer">Open contact route</a>` : "No public route"}</td><td>${esc(lead.contactStatus)}</td></tr>`).join("");
   const table = `<table><thead><tr><th>Store</th><th>Niche</th><th>Support email</th><th>Region</th><th>Store URL</th><th>Contact route</th><th>Status</th></tr></thead><tbody>${rows || "<tr><td colspan=7>No leads yet</td></tr>"}</tbody></table>`;
-  const reviewLeads = reportLeads.filter(lead => lead.verificationStatus === "qualified" && lead.contactStatus !== "sent" && hasBrowserContactPage(lead.publicContactRoute) && isUsableEmail(lead.contactEmail));
+  const reviewLeads = reportLeads.filter(lead => lead.verificationStatus === "qualified" && lead.contactStatus !== "sent" && hasBrowserContactPage(lead.publicContactRoute));
   const protectedLeads = reviewLeads.filter(lead => lead.contactFormProtected);
   const readyLeads = reviewLeads.filter(lead => !lead.contactFormProtected && /^https?:\/\//i.test(lead.publicContactRoute ?? ""));
 
@@ -65,9 +65,12 @@ export function renderPages(leads: RepoLead[], runs: Array<Record<string, unknow
   writeFileSync(join(DATA_DIR, "leads.csv"), csvRows + "\n");
   writeFileSync(join(DATA_DIR, "dashboard.html"), shell("Store Outreach Operations", `<p>Repository-backed hourly report. Runs recorded: ${runs.length}. Leads tracked: ${leads.length}.</p><h2>Latest runs</h2><pre>${esc(JSON.stringify(runs.slice(-10).reverse(), null, 2))}</pre>`));
   const storesPage = shell("Verified stores", `<p>${leads.length} repository records. Fields are ordered as store name, niche, support email, region, store URL, and contact route. Download CSV/JSON for phone-friendly follow-up.</p>${table}`);
-  const contactReviewPage = shell("Contact queue", `<p>${reviewLeads.length} qualified lead(s) meet the Contact-plus-email requirement: ${readyLeads.length} Contact pages, ${protectedLeads.length} protected forms. Records missing either requirement are excluded from this send queue and remain available in Stores.</p><h2>Contact pages</h2>${readyLeads.map(renderContactCard).join("") || "<p>No Contact pages are waiting.</p>"}<h2>Protected forms requiring manual review</h2>${protectedLeads.map(renderContactCard).join("") || "<p>No protected forms are waiting for review.</p>"}`);
+  const emailRows = reportLeads.filter(lead => isUsableEmail(lead.contactEmail)).map(lead => `<tr><td>${esc(lead.storeName)}</td><td>${esc(lead.niche)}</td><td>${esc(lead.contactEmail)}</td><td>${esc(lead.region)}</td><td><a href="${esc(lead.storeUrl)}" target="_blank" rel="noreferrer">${esc(lead.storeUrl)}</a></td></tr>`).join("");
+  const emailDirectoryPage = shell("Email directory", `<p>${reportLeads.filter(lead => isUsableEmail(lead.contactEmail)).length} records with a usable support email.</p><table><thead><tr><th>Store</th><th>Niche</th><th>Support email</th><th>Region</th><th>Store URL</th></tr></thead><tbody>${emailRows || "<tr><td colspan=5>No support emails yet</td></tr>"}</tbody></table>`);
+  const contactReviewPage = shell("Contact queue", `<p>${reviewLeads.length} qualified lead(s) with a verified Contact page: ${readyLeads.length} Contact pages, ${protectedLeads.length} protected forms. Records without a verified Contact page are excluded from this send queue and remain available in Stores.</p><h2>Contact pages</h2>${readyLeads.map(renderContactCard).join("") || "<p>No Contact pages are waiting.</p>"}<h2>Protected forms requiring manual review</h2>${protectedLeads.map(renderContactCard).join("") || "<p>No protected forms are waiting for review.</p>"}`);
   writeFileSync(join(DATA_DIR, "leads.html"), storesPage);
   writeFileSync(join(DATA_DIR, "stores.html"), storesPage);
+  writeFileSync(join(DATA_DIR, "email-directory.html"), emailDirectoryPage);
   writeFileSync(join(DATA_DIR, "review.html"), contactReviewPage);
   writeFileSync(join(DATA_DIR, "contact-review.html"), contactReviewPage);
   writeFileSync(join(DATA_DIR, "contact-queue.html"), contactReviewPage);
