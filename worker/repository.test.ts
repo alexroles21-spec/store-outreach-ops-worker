@@ -112,4 +112,19 @@ describe("repository dispatcher integration", () => {
     expect(review).toContain("minmax(0,1fr)");
     expect(review).toContain("overflow-wrap:anywhere");
   });
+
+  it("includes Contact-only records in Contact Queue but not Email Directory", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "repo-contact-only-"));
+    process.chdir(dir);
+    mkdirSync(join(dir, "data"), { recursive: true });
+    const { renderPages } = await import("./repository");
+    const contactOnly = { id: 4, storeName: "Contact Only Store", niche: "Beauty", storeUrl: "https://contact-only.test", normalizedHost: "contact-only.test", region: "US", publicContactRoute: "https://contact-only.test/contact", contactEmail: undefined, contactFormProtected: false, verificationStatus: "qualified", verificationEvidence: "HTTP 200", contactStatus: "queued", deliveryStatus: "pending", discoveredAt: new Date().toISOString(), lastVerifiedAt: new Date().toISOString(), senderEmail: "sender@example.test", subject: "Subject", body: "Body" };
+    renderPages([contactOnly as never], []);
+    const review = readFileSync(join(dir, "data", "contact-review.html"), "utf8");
+    const emails = readFileSync(join(dir, "data", "email-directory.html"), "utf8");
+    rmSync(dir, { recursive: true, force: true });
+    expect(review).toContain("Contact Only Store");
+    expect(review).toContain("Open Contact page");
+    expect(emails).not.toContain("Contact Only Store");
+  });
 });

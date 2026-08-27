@@ -436,7 +436,7 @@ export function hasBrowserContactPage(route?: string) {
 }
 
 export function isContactQueueEligible(input: Pick<QualificationResult, "verificationStatus" | "publicContactRoute" | "contactFormProtected" | "contactEmail">) {
-  return input.verificationStatus === "qualified" && hasBrowserContactPage(input.publicContactRoute) && isUsableEmail(input.contactEmail);
+  return input.verificationStatus === "qualified" && hasBrowserContactPage(input.publicContactRoute);
 }
 
 export function getContactDisposition(input: Pick<QualificationResult, "verificationStatus" | "publicContactRoute" | "contactFormProtected" | "contactEmail">) {
