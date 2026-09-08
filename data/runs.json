@@ -1599,5 +1599,24 @@
     },
     "sourcePage": 83,
     "nextSourcePage": 84
+  },
+  {
+    "startedAt": "2026-09-08T20:18:57.365Z",
+    "finishedAt": "2026-09-08T20:19:56.165Z",
+    "target": 84,
+    "candidateBudget": 504,
+    "discovered": 1,
+    "qualified": 0,
+    "failures": 0,
+    "protectedForms": 0,
+    "queued": 0,
+    "dispatch": {
+      "attempted": 0,
+      "sent": 0,
+      "failed": 0,
+      "skipped": 0
+    },
+    "sourcePage": 84,
+    "nextSourcePage": 85
   }
 ]
