@@ -2017,5 +2017,24 @@
     },
     "sourcePage": 105,
     "nextSourcePage": 106
+  },
+  {
+    "startedAt": "2026-09-11T22:34:31.330Z",
+    "finishedAt": "2026-09-11T22:40:17.548Z",
+    "target": 84,
+    "candidateBudget": 504,
+    "discovered": 594,
+    "qualified": 62,
+    "failures": 44,
+    "protectedForms": 42,
+    "queued": 4,
+    "dispatch": {
+      "attempted": 0,
+      "sent": 0,
+      "failed": 0,
+      "skipped": 0
+    },
+    "sourcePage": 106,
+    "nextSourcePage": 107
   }
 ]
